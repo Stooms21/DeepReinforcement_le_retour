@@ -1,6 +1,6 @@
 import pygame
 import sys
-from environnements.bond import Bond
+from src.environnements.bond import Bond
 
 
 def playGame():
