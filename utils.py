@@ -131,7 +131,7 @@ def observe_R_S_prime(env, a):
     env.step(a)
     new_score = env.score()
     reward = new_score - prev_score
-    s_prime = env.state_id()
+    s_prime = env.one_hot_state_desc()
     available_actions_prime = env.available_actions()
     return reward, s_prime, available_actions_prime
 
