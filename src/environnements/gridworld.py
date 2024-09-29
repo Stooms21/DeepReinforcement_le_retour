@@ -1,14 +1,14 @@
 class GridWorld:
     def __init__(self, config):
-        self.size = (config['size'], config['size'])
+        self.size = config['size']
         self.actions = config['actions']
         self.rewards = config['rewards']
         self.terminals = config['terminals']
         self.scored = 0
-        self.player_position = self.size[0] * self.size[1] // 2  # Start state
+        self.player_position = self.size**2 // 2  # Start state
 
     def reset(self):
-        self.player_position = self.size[0] * self.size[1] // 2  # Start state
+        self.player_position = self.size**2 // 2  # Start state
         return self.player_position
 
     def num_actions(self) -> int:
@@ -25,17 +25,17 @@ class GridWorld:
         return is_end
 
     def display(self):
-        grid = ['_' for _ in range(self.size[0] * self.size[1])]
+        grid = ['_' for _ in range(self.size**2)]
         # Marquer les bords de la grille avec 'X'
-        for s in range(self.size[0] * self.size[1]):
+        for s in range(self.size**2):
             if s in self.terminals:
                 grid[s] = 'X'
             if s == 18:
                 grid[s] = '0'
         grid[self.player_position] = 'P'
         # Affichage de la grille
-        for i in range(self.size[1]):
-            print(" ".join(grid[i * self.size[0]:(i + 1) * self.size[0]]))
+        for i in range(self.size):
+            print(" ".join(grid[i * self.size: (i + 1) * self.size]))
         print("\n")
 
     def is_forbidden(self, action: int) -> int:
@@ -47,9 +47,9 @@ class GridWorld:
         if action == 1:
             self.player_position += 1
         if action == 2:
-            self.player_position += self.size[0]
+            self.player_position += self.size
         if action == 3:
-            self.player_position -= self.size[0]
+            self.player_position -= self.size
 
 
     def score(self):
@@ -62,7 +62,7 @@ class GridWorld:
         return self.scored
 
     def one_hot_state_desc(self):
-        state_desc = [0] * (self.size[0] * self.size[1])
+        state_desc = [0] * (self.size * self.size)
         state_desc[self.player_position] = 1
         return state_desc
 

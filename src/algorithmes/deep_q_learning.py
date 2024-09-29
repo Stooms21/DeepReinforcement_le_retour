@@ -17,19 +17,21 @@ class QNet(nn.Module):
         super(QNet, self).__init__()
         self.input_layer = nn.Linear(num_states_description, 128)
         self.hidden1 = nn.Linear(128, 128)
+        self.hidden2 = nn.Linear(128, 128)
         self.output_layer = nn.Linear(128, num_actions)
 
     def forward(self, x):
         # Propagation vers l'avant avec une fonction d'activation ReLU
         x = torch.relu(self.input_layer(x))
         x = torch.relu(self.hidden1(x))
+        x = torch.relu(self.hidden2(x))
         x = self.output_layer(x)  # Pas d'activation sur la sortie (pour régression)
         return x
 
 
 def deep_q_learning(
         env,
-        alpha: float = 0.01,
+        alpha: float = 0.0001,
         epsilon: float = 1.0,
         epsilon_min: float = 0.01,
         epsilon_decay: float = 0.995,
@@ -124,13 +126,33 @@ def play_lineworld(env, policy_network):
     return total_reward
 
 
+def play_gridworld(env, policy_network):
+    env.reset()
+    total_reward = 0
+    steps = 0
+
+    while not env.is_game_over():
+        env.display()
+        s = torch.tensor(env.one_hot_state_desc(), dtype=torch.float32)
+        q_values = policy_network(s).detach().numpy()
+        a = np.argmax(q_values)
+        env.step(a)
+        reward = env.score()
+        total_reward += reward
+        steps += 1
+
+    env.display()
+    print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
+    return total_reward
+
+
 if __name__ == "__main__":
-    config = ut.load_config(congig_file, "LineWorld")
-    env = lw.LineWorld(config)
+    config = ut.load_config(congig_file, "GridWorld")
+    env = gw.GridWorld(config)
     reward = 0
     print(env.one_hot_state_desc())
     for i in range(10):
         env.reset()
         policy_network = deep_q_learning(env)
-        reward += play_lineworld(env, policy_network)
+        reward += play_gridworld(env, policy_network)
         print(f"Reward moyen: {reward / 10}")
