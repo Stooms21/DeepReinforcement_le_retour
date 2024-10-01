@@ -1,3 +1,7 @@
+import numpy as np
+import torch
+
+
 class GridWorld:
     def __init__(self, config):
         self.size = config['size']
@@ -5,10 +9,10 @@ class GridWorld:
         self.rewards = config['rewards']
         self.terminals = config['terminals']
         self.scored = 0
-        self.player_position = self.size**2 // 2  # Start state
+        self.player_position = 6  # Start state
 
     def reset(self):
-        self.player_position = self.size**2 // 2  # Start state
+        self.player_position = 6  # Start state
         return self.player_position
 
     def num_actions(self) -> int:
@@ -65,6 +69,28 @@ class GridWorld:
         state_desc = [0] * (self.size * self.size)
         state_desc[self.player_position] = 1
         return state_desc
+
+    def get_one_hot_size(self):
+        return len(self.one_hot_state_desc())
+
+    def play(env, policy_network):
+        env.reset()
+        total_reward = 0
+        steps = 0
+
+        while not env.is_game_over():
+            env.display()
+            s = torch.tensor(env.one_hot_state_desc(), dtype=torch.float32)
+            q_values = policy_network(s).detach().numpy()
+            a = np.argmax(q_values)
+            env.step(a)
+            reward = env.score()
+            total_reward += reward
+            steps += 1
+
+        env.display()
+        print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
+        return total_reward
 
     def available_actions(self):
         return self.actions

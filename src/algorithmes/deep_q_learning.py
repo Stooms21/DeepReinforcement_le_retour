@@ -1,32 +1,45 @@
-import src.environnements.lineworld as lw
-import src.environnements.gridworld as gw
 import torch
-import torch.nn as nn
-import torch.optim as optim
 import numpy as np
 import utils as ut
 import tqdm
+import models
+from config.config import CONFIG_FILE, DQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 
 
-congig_file = "../../config/config.yaml"
+def choose_epsilon_greedy_action(
+        policy_network,
+        s,
+        available_actions, epsilon
+):
+    if np.random.rand() < epsilon:
+        a = np.random.choice(available_actions)
+    else:
+        q_values = policy_network(s).detach().numpy()
+        a = available_actions[np.argmax(q_values)]
+    return a
 
 
-# Create pytorch neural network
-class QNet(nn.Module):
-    def __init__(self, num_states_description, num_actions):
-        super(QNet, self).__init__()
-        self.input_layer = nn.Linear(num_states_description, 128)
-        self.hidden1 = nn.Linear(128, 128)
-        self.hidden2 = nn.Linear(128, 128)
-        self.output_layer = nn.Linear(128, num_actions)
+def compute_q_values_and_q_target(
+        env,
+        policy_network,
+        s,
+        s_prime,
+        a,
+        gamma,
+        reward
+):
+    if not env.is_game_over():
+        s_prime_tensor = torch.tensor(s_prime, dtype=torch.float32)
+        q_values_prime = policy_network.forward(s_prime_tensor).detach().numpy()
+        q_target = reward + gamma * np.max(q_values_prime)
+    else:
+        q_target = reward
 
-    def forward(self, x):
-        # Propagation vers l'avant avec une fonction d'activation ReLU
-        x = torch.relu(self.input_layer(x))
-        x = torch.relu(self.hidden1(x))
-        x = torch.relu(self.hidden2(x))
-        x = self.output_layer(x)  # Pas d'activation sur la sortie (pour régression)
-        return x
+    # Calcul de la prédiction actuelle Q(s, a)
+    q_values_current = policy_network.forward(s)
+    q_value = q_values_current[a]
+
+    return q_value, q_target
 
 
 def deep_q_learning(
@@ -39,15 +52,11 @@ def deep_q_learning(
         nb_episode: int = 1000,
 ):
     # Initialize Q(s,a) arbitrarily
-    input_layer_size = len(env.one_hot_state_desc())
+    input_layer_size = env.get_one_hot_size()
     output_layer_size = env.num_actions()
-    policy_network = QNet(input_layer_size, output_layer_size)
-
-    criterion = nn.MSELoss()  # Pour une tâche de régression
-    optimizer = optim.Adam(policy_network.parameters(), lr=alpha)
+    policy_network = models.QNet(input_layer_size, output_layer_size, DQN_HIDDEN_LAYER_SIZE)
 
     # Loop for each episode
-
     for _ in tqdm.tqdm(range(nb_episode)):
         #Initialize S
         env.reset()
@@ -56,103 +65,33 @@ def deep_q_learning(
             s = torch.tensor(env.one_hot_state_desc(), dtype=torch.float32)
             available_actions = env.available_actions()
 
-            if np.random.rand() < epsilon:
-                a = np.random.choice(available_actions)
-            else:
-                q_values = policy_network(s).detach().numpy()
-                a = available_actions[np.argmax(q_values)]
+            # Choose A from S using policy derived from Q
+            a = choose_epsilon_greedy_action(policy_network, s, available_actions, epsilon)
 
+            # Take action A, observe R, S'
             reward, s_prime, available_actions_prime = ut.observe_R_S_prime(env, a)
 
-            if not env.is_game_over():
-                q_values_prime = policy_network(torch.tensor(s_prime, dtype=torch.float32)).detach().numpy()
-                q_target = reward + gamma * np.max(q_values_prime)
-            else:
-                q_target = reward
+            # Compute Q(s,a) and Q_target
+            q_value, q_target = compute_q_values_and_q_target(env, policy_network, s, s_prime, a, gamma, reward)
 
-            # Calcul de la prédiction actuelle Q(s, a)
-            q_values_current = policy_network(s)
-            q_value = q_values_current[a]
+            # Update Q(s,a)
+            policy_network.backward(q_value, q_target)
 
-            # Calcul de la perte L
-            loss = criterion(q_value, torch.tensor(q_target, dtype=torch.float32))
-
-            # Mise à jour des poids du réseau par rétropropagation
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        # epsilon decay
         epsilon = max(epsilon_min, epsilon * epsilon_decay)
 
     return policy_network
 
 
-def play_lineworld(env, policy_network):
-    # Réinitialisation de l'environnement
-    env.reset()
-    total_reward = 0
-    steps = 0
-
-    # Boucle jusqu'à la fin de la partie
-    while not env.is_game_over():
-        # Affichage de l'état actuel
-        env.display()
-
-        # Obtention de la description de l'état courant
-        s = torch.tensor(env.one_hot_state_desc(), dtype=torch.float32)
-
-        # Calcul des valeurs Q pour l'état courant
-        q_values = policy_network(s).detach().numpy()
-
-        # Sélection des actions disponibles
-        available_actions = env.available_actions()
-
-        # Filtrage des valeurs Q pour les actions disponibles
-        q_values_available = q_values[available_actions]
-
-        # Sélection de l'action avec la valeur Q maximale parmi les actions disponibles
-        a = available_actions[np.argmax(q_values_available)]
-
-        # Exécution de l'action dans l'environnement
-        env.step(a)
-
-        # Obtention de la récompense
-        reward = env.score()
-        total_reward += reward
-        steps += 1
-
-    # Affichage de l'état final
-    env.display()
-    print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
-    return total_reward
-
-
-def play_gridworld(env, policy_network):
-    env.reset()
-    total_reward = 0
-    steps = 0
-
-    while not env.is_game_over():
-        env.display()
-        s = torch.tensor(env.one_hot_state_desc(), dtype=torch.float32)
-        q_values = policy_network(s).detach().numpy()
-        a = np.argmax(q_values)
-        env.step(a)
-        reward = env.score()
-        total_reward += reward
-        steps += 1
-
-    env.display()
-    print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
-    return total_reward
-
-
 if __name__ == "__main__":
-    config = ut.load_config(congig_file, "GridWorld")
-    env = gw.GridWorld(config)
+    env_name = "GridWorld"
+    config = ut.load_config(CONFIG_FILE, env_name)
+    env_module = ENV_MODULE_MAPPING[env_name]
+    env_class = getattr(env_module, env_name)
+    env = env_class(config)
     reward = 0
-    print(env.one_hot_state_desc())
-    for i in range(10):
+    for i in range(1, 11):
         env.reset()
         policy_network = deep_q_learning(env)
-        reward += play_gridworld(env, policy_network)
-        print(f"Reward moyen: {reward / 10}")
+        reward += env.play(policy_network)
+        print(f"Reward moyen: {reward / i} sur {i} parties")
