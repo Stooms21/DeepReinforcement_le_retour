@@ -2,7 +2,7 @@ from src.utils import utils as ut
 import src.utils.dqn_utils as dqu
 import tqdm
 import models
-from config.config import CONFIG_FILE, DQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
+from config.algos_config import CONFIG_FILE, DQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 
 
 def deep_q_learning(
