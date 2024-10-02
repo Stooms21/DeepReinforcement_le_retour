@@ -45,8 +45,10 @@ class LineWorld:
     def score(self):
         if self.player_position == self.terminals[0]:
             self.scored = self.rewards[0]
-        if self.player_position == self.terminals[1]:
+        elif self.player_position == self.terminals[1]:
             self.scored = self.rewards[2]
+        else:
+            self.scored = self.rewards[1]
         return self.scored
 
     def available_actions(self):
@@ -55,10 +57,10 @@ class LineWorld:
     def one_hot_state_desc(self):
         # La description de l'état se fait en retournant un vecteur one-hot dans lequel
         # la position du joueur est à 1 et les autres positions sont à 0
-        return [1 if i == self.player_position else 0 for i in range(self.size)]
+        return torch.tensor([1 if i == self.player_position else 0 for i in range(self.size)], dtype=torch.float32)
 
     def get_one_hot_size(self):
-        return len(self.one_hot_state_desc())
+        return self.one_hot_state_desc().numel()
 
     def play(self, policy_network):
         # Réinitialisation de l'environnement

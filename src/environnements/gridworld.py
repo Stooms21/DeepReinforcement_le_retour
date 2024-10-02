@@ -68,27 +68,27 @@ class GridWorld:
     def one_hot_state_desc(self):
         state_desc = [0] * (self.size * self.size)
         state_desc[self.player_position] = 1
-        return state_desc
+        return torch.tensor(state_desc, dtype=torch.float32)
 
     def get_one_hot_size(self):
-        return len(self.one_hot_state_desc())
+        return self.one_hot_state_desc().numel()
 
-    def play(env, policy_network):
-        env.reset()
+    def play(self, policy_network):
+        self.reset()
         total_reward = 0
         steps = 0
 
-        while not env.is_game_over():
-            env.display()
-            s = torch.tensor(env.one_hot_state_desc(), dtype=torch.float32)
+        while not self.is_game_over():
+            self.display()
+            s = torch.tensor(self.one_hot_state_desc(), dtype=torch.float32)
             q_values = policy_network(s).detach().numpy()
             a = np.argmax(q_values)
-            env.step(a)
-            reward = env.score()
+            self.step(a)
+            reward = self.score()
             total_reward += reward
             steps += 1
 
-        env.display()
+        self.display()
         print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
         return total_reward
 

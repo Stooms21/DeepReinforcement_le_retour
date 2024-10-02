@@ -126,16 +126,6 @@ def save_results_to_pickle(params, Q, Pi, score, file_path):
         pickle.dump(data_to_save, file)
 
 
-def observe_R_S_prime(env, a):
-    prev_score = env.score()
-    env.step(a)
-    new_score = env.score()
-    reward = new_score - prev_score
-    s_prime = env.one_hot_state_desc()
-    available_actions_prime = env.available_actions()
-    return reward, s_prime, available_actions_prime
-
-
 def play_montyhall1(env, Pi):
     print(f"Action from optimal policy for MontyHall1: {env.action_choose}")
     avg_score = 0
