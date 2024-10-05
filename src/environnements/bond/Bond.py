@@ -1,16 +1,15 @@
-from Piece import Piece
-import Piece
 from Player import Player
-import sys
+from config.bond_config import ROWS, COLS
+
 
 class Bond:
-    def __init__(self, x=4, y=4):
+    def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
         self.x = x
         self.y = y
         self.plateau = [[None for _ in range(self.x)] for _ in range(self.y)]
         self.pieces = []
         self.players = [Player("blanc"), Player("noir")]
-        self.move_state = 0 #no color 0,highlighted in blue 1,highlighted in yellow 2
+        self.move_state = 0  # no color 0, highlighted in blue 1, highlighted in yellow 2
 
     def get_x(self):
         return self.x
