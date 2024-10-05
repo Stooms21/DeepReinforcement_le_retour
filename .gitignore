@@ -1,0 +1,5 @@
+# Ignore les dossiers PyCharm et les fichiers XML
+.idea/
+*.xml
+.ipynb_checkpoints/
+__pycache__/
