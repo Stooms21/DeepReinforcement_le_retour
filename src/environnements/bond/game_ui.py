@@ -9,12 +9,13 @@ class GameUI:
         self.case_image = pygame.image.load("img/tuileV1.jpg")
         self.case_image = pygame.transform.scale(self.case_image, (CELL_SIZE, CELL_SIZE))
         self.title_font = pygame.font.SysFont(None, TITLE_FONT_SIZE)
-        self.background_color = (255, 255, 255)
+        self.background_color = (255, 0, 0)
         self.hover_color = (173, 216, 230, 200)  # Couleur surbrillance bleue semi-transparente
-        self.selected_color = (255, 0, 255, 230)  # Couleur surbrillance jaune semi-transparente
+        self.selected_color = (0, 255, 0, 230)  # Couleur surbrillance jaune semi-transparente
         self.selected_position = None
         self.window.fill(self.background_color)
         self.draw_title()
+        self.move_available = []
 
     def draw_title(self):
         title_text = self.title_font.render("BOND", True, (0, 0, 0))
@@ -43,6 +44,9 @@ class GameUI:
         # Highlight selected area if it exists
         if self.selected_position:
             self.draw_area(self.selected_position[0], self.selected_position[1], self.selected_color)
+        if self.move_available:
+            for move in self.move_available:
+                self.draw_area(start_x + move[0] * (CELL_SIZE + MARGIN) , start_y + move[1] * (CELL_SIZE + MARGIN) , self.selected_color)
 
     def check_intersection(self, mouse_x, mouse_y):
         # Calcul du centrage du plateau
@@ -70,3 +74,15 @@ class GameUI:
             x, y, xx, yy = highlighted_intersection
             # Surligner la zone cliquée en jaune
             self.selected_position = (x, y)
+        else:
+            self.selected_position = None
+
+    def handle_click_on_piece(self, highlighted_intersection):
+        if highlighted_intersection:
+            x, y, xx, yy = highlighted_intersection
+            if self.bond.check_piece_color(xx, yy):
+                self.move_available = self.bond.get_move_available(xx,yy)
+            else:
+                self.move_available = None
+        else:
+            self.move_available = None

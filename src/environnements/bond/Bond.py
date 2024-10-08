@@ -11,7 +11,7 @@ class Bond:
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
-
+        self.available_action = []
     def get_x(self):
         return self.x
 
@@ -57,6 +57,140 @@ class Bond:
                 return False
         else:
             return False
+    def get_case(self,x,y):
+        return self.get_plateau()[x][y]
+
+    def check_piece_color(self, x, y):
+        if self.get_case(x, y):
+            return self.get_case(x, y).get_color() == self.get_turn()
+        return None
+
+    def get_turn(self):
+        return self.move_state % 2
+
+    def set_turn(self):
+        self.move_state += 1
+        self.move_state = self.move_state % 2
+
+    def available_actions(self):
+        total_moves = 8 * 16 + 16
+        available_action = [0] * total_moves
+
+        i = 0
+        for y in range(self.x):
+            for x in range(self.y):
+                if not self.get_case(x, y):  # Si la case n'est pas vide
+                    available_action[i] = 1
+                i+=1
+
+
+        directions = {'up': 0, 'down': 1, 'left': 2, 'right': 3, 'up2': 4, 'left2': 5, 'right2': 6, 'down2': 7}
+        for x in range(self.x):
+            for y in range(self.y):
+                if self.get_case(x, y):
+                    for direction, dir_idx in directions.items():
+                        new_x, new_y = x, y
+                        if direction == 'up':
+                            new_y -= 1
+                        elif direction == 'down':
+                            new_y += 1
+                        elif direction == 'left':
+                            new_x -= 1
+                        elif direction == 'right':
+                            new_x += 1
+                        elif direction == 'up2':
+                            new_y -= 2
+                        elif direction == 'left2':
+                            new_x -= 2
+                        elif direction == 'right2':
+                            new_x += 2
+                        elif direction == 'down2':
+                            new_y += 2
+
+                        # Vérifier si la nouvelle position est valide et vide
+                        if 0 <= new_x < self.x and 0 <= new_y < self.y and self.check_piece_color(new_x, new_y):
+                            self.available_action[i] = 1
+                        i += 1
+
+        return self.available_action
+
+    def available_moves(self):
+        i = 0
+        available_move = []
+        directions = {'up': 0, 'down': 1, 'left': 2, 'right': 3, 'up2': 4, 'left2': 5, 'right2': 6, 'down2': 7}
+        for x in range(self.x):
+            for y in range(self.y):
+                for direction, dir_idx in directions.items():
+                    new_x, new_y = x, y
+                    if direction == 'up':
+                        new_y -= 1
+                    elif direction == 'down':
+                        new_y += 1
+                    elif direction == 'left':
+                        new_x -= 1
+                    elif direction == 'right':
+                        new_x += 1
+                    elif direction == 'up2':
+                        new_y -= 2
+                    elif direction == 'left2':
+                        new_x -= 2
+                    elif direction == 'right2':
+                        new_x += 2
+                    elif direction == 'down2':
+                        new_y += 2
+
+                    # Vérifier si la nouvelle position est valide et vide
+                    if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.get_case(new_x, new_y):
+                        available_move.append(1)
+                    else:
+                        available_move.append(0)
+                    i += 1
+
+
+        return available_move
+
+    def get_move_available(self,x,y):
+        all_move = []
+        move = self.available_moves()
+        index_un = [i for i, val in enumerate(move) if val == 1]
+        nb_case = x * 4 + y
+        debut = nb_case * 8
+        fin = debut + 8
+        moves = move[debut:fin]
+        return self.get_coordonnees_by_vector(moves,nb_case)
+
+    def get_coordonnees_by_vector(self,moves,nb_case):
+        row = nb_case // self.x
+        col = nb_case % self.y
+        piece = self.get_case(row,col)
+        print(moves)
+        print(row,col)
+        coordonnees = []
+        if piece:
+            if moves[0] == 1:
+                coordonnees.append((row - 1, col))
+            elif moves[1] == 1:
+                coordonnees.append((row - 1, col))
+            elif moves[2] == 1:
+                coordonnees.append((row, col - 1))
+            elif moves[3] == 1:
+                coordonnees.append((row, col + 1))
+            elif moves[4] == 1 and piece.get_type() == 2:
+                coordonnees.append((row - 2, col))
+            elif moves[5] == 1 and piece.get_type() == 2:
+                coordonnees.append((row, col - 2))
+            elif moves[6] == 1 and piece.get_type() == 2:
+                coordonnees.append((row, col + 2))
+            elif moves[7] == 1 and piece.get_type() == 2:
+                coordonnees.append((row + 2, col))
+        print(coordonnees)
+        return coordonnees
+
+    def reset(self):
+        self.plateau = [[None for _ in range(self.x)] for _ in range(self.y)]
+        self.piece_to_delete = []
+        self.players = [Player(0), Player(1)]
+        self.move_state = 0
 
     def check_is_game_over(self):
         game_over = False

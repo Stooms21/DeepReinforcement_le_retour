@@ -11,9 +11,9 @@ def main():
     pygame.init()
 
     # Initialisation de la musique
-    # pygame.mixer.init()
-    # pygame.mixer.music.load("music.mp3")  # Remplace par le chemin de ton fichier audio
-    # pygame.mixer.music.play(-1)  # Jouer la musique en boucle
+    pygame.mixer.init()
+    pygame.mixer.music.load("music.mp3")  # Remplace par le chemin de ton fichier audio
+    pygame.mixer.music.play(-1)  # Jouer la musique en boucle
 
     # Créer la fenêtre Pygame
     window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -42,16 +42,20 @@ def main():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if state_move != 0 and state_move != 1 and selected_x == x and selected_y == y:
-                    bond.placer_pion(x, y, Piece(x, y, state_move))
-                    bond.check_piece_to_develop(x,y)
-                    if state_move == 2:
-                        bond.set_move_state(1)
-                    elif state_move == 3:
-                        bond.set_move_state(0)
 
+                if (state_move == 2 or state_move == 3) and selected_x == x and selected_y == y:
+                    bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
+                    bond.check_piece_to_develop(x,y)
+                    bond.set_turn()
+                    game_ui.handle_click(None)
+                elif (state_move == 3 and state_move == 4) and selected_x == x and selected_y == y:
+                    bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
+                    bond.check_piece_to_develop(x,y)
+                    bond.set_turn()
+                    game_ui.handle_click(None)
                 else:
                     game_ui.handle_click(highlighted_intersection)
+                    game_ui.handle_click_on_piece(highlighted_intersection)
                     if highlighted_intersection:
                         x = highlighted_intersection[2]
                         y = highlighted_intersection[3]
@@ -60,8 +64,7 @@ def main():
                         elif state_move == 1:
                             bond.set_move_state(3)
 
-        game_ui.afficher_plateau()
-        # Highlight the area under the mouse with a semi-transparent blue color
+            # Highlight the area under the mouse with a semi-transparent blue color
         if highlighted_intersection:
             game_ui.draw_area(highlighted_intersection[0], highlighted_intersection[1], game_ui.hover_color)
 
