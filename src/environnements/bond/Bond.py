@@ -1,3 +1,6 @@
+from PIL.ImageCms import Direction
+from six import moves
+
 from Player import Player
 from config.bond_config import ROWS, COLS
 
@@ -138,9 +141,12 @@ class Bond:
                         new_x += 2
                     elif direction == 'down2':
                         new_y += 2
-
                     # Vérifier si la nouvelle position est valide et vide
-                    if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.get_case(new_x, new_y):
+                    if 0 <= new_x < self.x and 0 <= new_y < self.y and self.get_case(new_y, new_x) is None:
+                        print(direction)
+                        print(new_x, new_y)
+                        print(self.get_case(new_x, new_y))
+                        print(self.get_plateau()[x][y])
                         available_move.append(1)
                     else:
                         available_move.append(0)
@@ -152,19 +158,103 @@ class Bond:
     def get_move_available(self,x,y):
         all_move = []
         move = self.available_moves()
+        print(move)
         index_un = [i for i, val in enumerate(move) if val == 1]
-        nb_case = x * 4 + y
+        nb_case = x * self.y + y
         debut = nb_case * 8
         fin = debut + 8
         moves = move[debut:fin]
         return self.get_coordonnees_by_vector(moves,nb_case)
 
+    def get_coordonnees_move(self,x,y):
+        row = x
+        col = y
+        moves = []
+        piece = self.get_case(row,col)
+        if x - 1 >= 0:
+            if self.get_case(row - 1, col) is None:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        if x + 1 < self.x:
+            if self.get_case(row + 1, col) is None:
+                print(self.get_case(row + 1, col))
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        if y - 1 >= 0:
+            if self.get_case(row, col - 1) is None:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        if y + 1 < self.y:
+            if self.get_case(row, col + 1) is None:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+
+        if x - 2 >= 0:
+            if not self.get_case(row - 2, col) and piece.get_type() == 2:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        if x + 2 < self.x:
+            if not self.get_case(row + 2, col) and piece.get_type() == 2:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        if y - 2 >= 0:
+            if not self.get_case(row, col - 2) and piece.get_type() == 2:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        if y + 2 < self.y:
+            if not self.get_case(row, col + 2) and piece.get_type() == 2:
+                moves.append(1)
+            else:
+                moves.append(0)
+        else:
+            moves.append(0)
+        print(moves)
+        coordonnees = []
+        if piece:
+            if moves[0] == 1:
+                coordonnees.append((row - 1, col))
+            if moves[1] == 1:
+                coordonnees.append((row + 1, col))
+            if moves[2] == 1:
+                coordonnees.append((row, col - 1))
+            if moves[3] == 1:
+                coordonnees.append((row, col + 1))
+            if moves[4] == 1:
+                coordonnees.append((row - 2, col))
+            if moves[5] == 1:
+                coordonnees.append((row, col - 2))
+            if moves[6] == 1:
+                coordonnees.append((row, col + 2))
+            if moves[7] == 1 :
+                coordonnees.append((row + 2, col))
+        print(coordonnees)
+        return coordonnees
+
     def get_coordonnees_by_vector(self,moves,nb_case):
         row = nb_case // self.x
         col = nb_case % self.y
         piece = self.get_case(row,col)
-        print(moves)
-        print(row,col)
         coordonnees = []
         if piece:
             if moves[0] == 1:
@@ -183,7 +273,6 @@ class Bond:
                 coordonnees.append((row, col + 2))
             elif moves[7] == 1 and piece.get_type() == 2:
                 coordonnees.append((row + 2, col))
-        print(coordonnees)
         return coordonnees
 
     def reset(self):

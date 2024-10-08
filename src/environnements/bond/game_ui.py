@@ -46,7 +46,7 @@ class GameUI:
             self.draw_area(self.selected_position[0], self.selected_position[1], self.selected_color)
         if self.move_available:
             for move in self.move_available:
-                self.draw_area(start_x + move[0] * (CELL_SIZE + MARGIN) , start_y + move[1] * (CELL_SIZE + MARGIN) , self.selected_color)
+                self.draw_area(start_x + move[1] * (CELL_SIZE + MARGIN) , start_y + move[0] * (CELL_SIZE + MARGIN) , self.selected_color)
 
     def check_intersection(self, mouse_x, mouse_y):
         # Calcul du centrage du plateau
@@ -81,7 +81,7 @@ class GameUI:
         if highlighted_intersection:
             x, y, xx, yy = highlighted_intersection
             if self.bond.check_piece_color(xx, yy):
-                self.move_available = self.bond.get_move_available(xx,yy)
+                self.move_available = self.bond.get_coordonnees_move(xx,yy)
             else:
                 self.move_available = None
         else:
