@@ -43,6 +43,7 @@ def main():
                     pygame.quit()
                     sys.exit()
 
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if button_1player.collidepoint(event.pos):
                         print("1 Joueur sélectionné")
@@ -60,10 +61,20 @@ def main():
                         solo = False
 
         else:
-            if solo:
-                lst = bond.available_moves()
-                element_aleatoire = random.choice(lst)
-                print(element_aleatoire)
+            if solo and bond.get_turn() == 1:
+                plateau = bond.get_plateau()
+                coord = []
+                for x in range(bond.get_x()):
+                    for y in range(bond.get_y()):
+                        piece = bond.get_case(x,y)
+                        if piece is None:
+                            coord.append((x,y))
+                element_aleatoire = random.choice(coord)
+                x = element_aleatoire[0]
+                y = element_aleatoire[1]
+                bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
+                bond.check_piece_to_develop(x, y)
+                bond.set_turn()
             game_ui.afficher_plateau()
             bt3 = game_ui.draw_button_menu()
 
@@ -84,6 +95,7 @@ def main():
                     if bt3.collidepoint(event.pos):
                         menu = True
                         game_ui.clear()
+                        bond.reset()
 
                     if (state_move == 2 or state_move == 3) and selected_x == x and selected_y == y:
                         bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
