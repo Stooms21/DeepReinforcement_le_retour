@@ -63,6 +63,9 @@ class Bond:
     def get_case(self,x,y):
         return self.get_plateau()[x][y]
 
+    def set_case(self,Piece,x,y):
+        self.get_plateau()[x][y] = Piece
+
     def check_piece_color(self, x, y):
         if self.get_case(x, y):
             return self.get_case(x, y).get_color() == self.get_turn()
@@ -248,7 +251,6 @@ class Bond:
                 coordonnees.append((row, col + 2))
             if moves[7] == 1 :
                 coordonnees.append((row + 2, col))
-        print(coordonnees)
         return coordonnees
 
     def get_coordonnees_by_vector(self,moves,nb_case):
