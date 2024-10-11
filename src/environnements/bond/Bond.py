@@ -1,5 +1,6 @@
 from Player import Player
 from config.bond_config import ROWS, COLS
+import Piece as p
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
