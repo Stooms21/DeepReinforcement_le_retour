@@ -4,9 +4,9 @@ class Piece:
         self.pos_y = y
         self.type = 0 #gun 0,smg 1,bazooka 2
         if color % 2 == 0:
-            self.img = "img/gun.png"
+            self.img = "img/gun.webp"
         else:
-            self.img = "img/gun2.png"
+            self.img = "img/gun2.webp"
         self.color = color
 
     # Getters
@@ -39,9 +39,9 @@ class Piece:
         else:
             nb = "2"
         if type == 0:
-            self.img = f"img/gun{nb}.png"
+            self.img = f"img/gun{nb}.webp"
         if type == 1:
-            self.img = f"img/mitraillette{nb}.png"
+            self.img = f"img/mitraillette{nb}.webp"
         if type == 2:
             self.img = f"img/bazooka{nb}.png"
         self.type = type

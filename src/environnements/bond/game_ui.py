@@ -7,7 +7,7 @@ class GameUI:
     def __init__(self, window, bond):
         self.window = window
         self.bond = bond
-        self.case_image = pygame.image.load("img/tuileV1.jpg")
+        self.case_image = pygame.image.load("img/tuile3.jpg")
         self.case_image = pygame.transform.scale(self.case_image, (CELL_SIZE, CELL_SIZE))
         self.title_font = pygame.font.SysFont(None, TITLE_FONT_SIZE)
         self.background_color = (255, 255, 255)
@@ -17,7 +17,6 @@ class GameUI:
         self.window.fill(self.background_color)
         self.draw_title()
         self.move_available = []
-
     def get_move_available(self):
         return self.move_available
 
@@ -52,6 +51,7 @@ class GameUI:
             self.draw_area(self.selected_position[0], self.selected_position[1], self.selected_color)
         if self.move_available:
             for move in self.move_available:
+                print(move)
                 self.draw_area(start_x + move[1] * (CELL_SIZE + MARGIN) , start_y + move[0] * (CELL_SIZE + MARGIN) , self.selected_color)
         font = pygame.font.SysFont(None, 40)
         if not self.bond.get_turn():
@@ -104,7 +104,7 @@ class GameUI:
         if highlighted_intersection:
             x, y, xx, yy = highlighted_intersection
             if self.bond.check_piece_color(xx, yy):
-                self.move_available = self.bond.get_coordonnees_move(xx,yy)
+                self.move_available = self.bond.get_move_available(xx,yy)
             else:
                 self.move_available = None
         else:

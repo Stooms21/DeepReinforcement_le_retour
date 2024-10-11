@@ -11,9 +11,9 @@ def main():
     pygame.init()
 
     # Initialisation de la musique
-    pygame.mixer.init()
-    pygame.mixer.music.load("music.mp3")  # Remplace par le chemin de ton fichier audio
-    pygame.mixer.music.play(-1)  # Jouer la musique en boucle
+    #pygame.mixer.init()
+    #pygame.mixer.music.load("music.mp3")  # Remplace par le chemin de ton fichier audio
+    #pygame.mixer.music.play(-1)  # Jouer la musique en boucle
 
     # Créer la fenêtre Pygame
     window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -62,19 +62,9 @@ def main():
 
         else:
             if solo and bond.get_turn() == 1:
-                plateau = bond.get_plateau()
-                coord = []
-                for x in range(bond.get_x()):
-                    for y in range(bond.get_y()):
-                        piece = bond.get_case(x,y)
-                        if piece is None:
-                            coord.append((x,y))
-                element_aleatoire = random.choice(coord)
-                x = element_aleatoire[0]
-                y = element_aleatoire[1]
-                bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
-                bond.check_piece_to_develop(x, y)
-                bond.set_turn()
+                aa = bond.available_action()
+                action = random.choice(aa)
+                bond.step(action)
             game_ui.afficher_plateau()
             bt3 = game_ui.draw_button_menu()
 
@@ -99,17 +89,16 @@ def main():
 
                     if (state_move == 2 or state_move == 3) and selected_x == x and selected_y == y:
                         bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
-                        bond.check_piece_to_develop(x,y)
-                        bond.set_turn()
+                        bond.update_board(x, y)
                         game_ui.handle_click(None)
                     elif state_move == 4 or state_move == 5:
+                        print("ddd")
                         piece = bond.get_case(x, y)
                         bond.set_case(None,x, y)
                         piece.set_pos_x(selected_x)
                         piece.set_pos_y(selected_y)
                         bond.placer_pion(selected_x, selected_y, piece)
-                        bond.check_piece_to_develop(selected_x,selected_y)
-                        bond.set_turn()
+                        bond.update_board(selected_x, selected_y)
                         game_ui.handle_click(None)
                         game_ui.handle_click_on_piece(None)
                     else:
@@ -138,8 +127,8 @@ def main():
                 game_ui.draw_area(highlighted_intersection[0], highlighted_intersection[1], game_ui.hover_color)
 
         bond.check_piece_to_scored()
-        running = not bond.check_is_game_over()
-        pygame.time.Clock().tick(60)
+        running = not bond.is_game_over()
+        pygame.time.Clock().tick(30)
         pygame.display.flip()
 
 
