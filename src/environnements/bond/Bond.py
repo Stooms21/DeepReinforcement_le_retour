@@ -84,7 +84,7 @@ class Bond:
         i = 0
         for x in range(self.x):
             for y in range(self.y):
-                if not self.plateau[x][y]:  # Si la case n'est pas vide
+                if not self.plateau[x][y] and self.players[self.get_turn()].get_nbPieceRestante() >0 :  # Si la case n'est pas vide
                     self.aa[i] = 1
                 i+=1
 
@@ -181,7 +181,6 @@ class Bond:
         col = nb_case % self.y
         piece = self.get_case(row,col)
         coordonnees = []
-        print(moves)
         if piece:
             if moves[0] == 1:
                 coordonnees.append((row - 1, col))
