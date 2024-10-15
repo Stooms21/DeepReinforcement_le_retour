@@ -18,10 +18,12 @@ class Player:
     def get_nbPieceRestante(self):
         return self.nbPieceRestante
 
+    def set_nbPieceRestante(self):
+        self.nbPieceRestante -= 1
+
     # Setters
     def set_nbPieceSortis(self, nb):
         self.nbPieceSortis = nb
-        self.nbPieceRestante = 13 - self.nbPieceSortis
 
     def set_turn(self, turn):
         self.turn = turn

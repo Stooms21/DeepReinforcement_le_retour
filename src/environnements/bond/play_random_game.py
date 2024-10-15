@@ -3,6 +3,8 @@ import Bond as b
 import random
 import tqdm
 import cProfile
+#from numba import jit
+
 
 # Fonction qui simule une partie de ton jeu
 def play_game():
@@ -11,7 +13,6 @@ def play_game():
         aa = bond.available_action()
         action = random.choice(aa)
         bond.step(action)
-
 
 # Fonction pour jouer plusieurs parties et mesurer le temps
 def mesurer_vitesse(nombre_de_parties):

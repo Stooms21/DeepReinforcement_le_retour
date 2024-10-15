@@ -1,6 +1,7 @@
 from Player import Player
 from config.bond_config import ROWS, COLS
 import Piece as p
+import numpy as np
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
@@ -10,9 +11,9 @@ class Bond:
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
-        self.aa = [0] * 144
-        self.all_actions = [0] * 144
-
+        self.aa = np.zeros(144).astype(int)
+        self.all_actions = np.zeros(144)
+        self.winners = []
     def get_x(self):
         return self.x
 
@@ -48,6 +49,12 @@ class Bond:
     def set_move_state(self, move_state):
         self.move_state = move_state
 
+    def get_winners(self):
+        return self.winners
+
+    def add_winner(self, winner):
+        self.winners.append(winner)
+
     def placer_pion(self, x, y, piece):
 
         if 0 <= x < self.x and 0 <= y < self.y:
@@ -80,7 +87,7 @@ class Bond:
         return self.aa
 
     def update_available_actions(self):
-        self.aa = [0] * 144
+        self.aa = np.zeros(144)
         i = 0
         for x in range(self.x):
             for y in range(self.y):
@@ -121,7 +128,8 @@ class Bond:
                         self.aa[i] = 1
                     i += 1
         self.all_actions = self.aa
-        self.aa = [i for i, val in enumerate(self.aa) if val == 1]
+        self.aa = np.where(self.aa == 1)[0]
+
     def get_move_available(self,x,y):
         move = self.all_actions
         nb_case = x * self.x + y
@@ -172,6 +180,7 @@ class Bond:
         return new_x, new_y
 
     def update_board(self,x,y):
+        self.get_curr_player().set_nbPieceRestante()
         self.check_piece_to_develop(x, y)
         self.set_turn()
         self.update_available_actions()
@@ -210,8 +219,38 @@ class Bond:
         game_over = False
         for player in self.players:
             if player.get_nbPieceSortis() >= 10:
+                #print("gagné par pièce sortis")
+                self.add_winner(player.get_color())
                 game_over = True
-        return game_over or not self.aa
+            elif player.get_nbPieceRestante() == 0:
+                #print("perdu par manque de pièce")
+                self.add_winner((player.get_color() + 1) %2)
+                game_over = True
+
+        curr_player = self.get_curr_player()
+
+        if not self.aa.size == 0:
+            if curr_player not in self.winners:
+                #print("perdu par manque de coup")
+                self.add_winner(curr_player.get_color())
+
+        #if len(self.winners) == 2:
+            #print("c'est égalité")
+
+        return game_over or self.aa.size == 0
+
+    def score(self):
+        if self.is_game_over():
+            if 0 in self.winners:
+                if len(self.winners) == 2:
+                    return 0.5
+                return 1
+            else:
+                return 0
+        else:
+            return 0
+    def get_curr_player(self):
+        return self.players[self.get_turn()]
 
     def check_piece_to_develop(self,x,y):
         if x - 1 >= 0:

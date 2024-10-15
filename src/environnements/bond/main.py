@@ -130,7 +130,13 @@ def main():
         running = not bond.is_game_over()
         pygame.time.Clock().tick(30)
         pygame.display.flip()
-
+    winners = bond.get_winners()
+    if len(winners) == 2:
+        print("C'est égalité !")
+    elif 0 in winners:
+        print("Joueur blanc a gagné !")
+    elif bond.get_winner() == 1:
+        print("Joueur noir a gagné !")
 
 if __name__ == "__main__":
     main()
