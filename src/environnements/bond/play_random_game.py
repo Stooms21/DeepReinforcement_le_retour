@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Mesurer pour 1000 parties avec un nombre de processus égal aux cœurs CPU disponibles
     nombre_de_processus = multiprocessing.cpu_count()  # Utilise tous les cœurs disponibles
-    temps_total, parties_par_seconde = mesurer_vitesse_multiprocessing(nombre_de_parties, nombre_de_processus)
+    temps_total, parties_par_seconde = mesurer_vitesse_multiprocessing(nombre_de_parties, 8)
 
     # Affichage des résultats
     print(f"Temps total pour {nombre_de_parties} parties avec {nombre_de_processus} processus : {temps_total:.2f} secondes")
