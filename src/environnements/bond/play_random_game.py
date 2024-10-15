@@ -58,5 +58,5 @@ if __name__ == "__main__":
     temps_total, parties_par_seconde = mesurer_vitesse_multiprocessing(nombre_de_parties, 8)
 
     # Affichage des résultats
-    print(f"Temps total pour {nombre_de_parties} parties avec {nombre_de_processus} processus : {temps_total:.2f} secondes")
+    print(f"Temps total pour {nombre_de_parties} parties avec {8} processus : {temps_total:.2f} secondes")
     print(f"Nombre de parties par seconde : {parties_par_seconde:.2f}")

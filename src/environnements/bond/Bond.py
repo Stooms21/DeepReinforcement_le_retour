@@ -17,26 +17,15 @@ class Bond:
     def get_x(self):
         return self.x
 
-    def set_x(self, x):
-        self._x = x
-
     # Getter et Setter pour y
     def get_y(self):
         return self.y
 
-    def set_y(self, y):
-        self._y = y
-
-    # Getter et Setter pour plateau
     def get_plateau(self):
         return self.plateau
-
     # Getter et Setter pour players
     def get_players(self):
         return self.players
-
-    def set_players(self, players):
-        self._players = players
 
     # Getter et Setter pour move_state
     def get_move_state(self):
@@ -61,11 +50,9 @@ class Bond:
                 return False
         else:
             return False
-    def get_case(self,x,y):
-        return self.get_plateau()[x][y]
 
     def set_case(self,Piece,x,y):
-        self.get_plateau()[x][y] = Piece
+        self.plateau[x,y] = Piece
 
     def check_piece_color(self, x, y):
         if self.plateau[x, y]:
@@ -118,7 +105,7 @@ class Bond:
                         new_y += 2
                     condition = True
                     if curr_type == 2 and self.plateau[x, y]:
-                        condition = curr_type == self.get_case(x, y).get_type()
+                        condition = curr_type == self.plateau[x,y].get_type()
                     # Vérifier si la nouvelle position est valide et vide et que la piece courante est de la couleur du joueur courant
                     if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.plateau[new_x, new_y] and self.check_piece_color(x, y) and condition:
                         self.aa[i] = 1
@@ -145,7 +132,7 @@ class Bond:
             nb_cases = action // 8
             row = nb_cases // self.x
             col = nb_cases % self.y
-            piece = self.get_case(row,col)
+            piece = self.plateau[row,col]
             self.set_case(piece,row,col)
             row,col = self.get_direction(nb_cases,row,col)
             self.placer_pion(row,col,piece)
@@ -184,7 +171,7 @@ class Bond:
     def get_coordonnees_by_vector(self,moves,nb_case):
         row = nb_case // self.x
         col = nb_case % self.y
-        piece = self.get_case(row,col)
+        piece = self.plateau[row,col]
         coordonnees = []
         if piece:
             if moves[0] == 1:
@@ -245,6 +232,7 @@ class Bond:
                 return 0
         else:
             return 0
+
     def get_curr_player(self):
         return self.players[self.get_turn()]
 

@@ -92,8 +92,7 @@ def main():
                         bond.update_board(x, y)
                         game_ui.handle_click(None)
                     elif state_move == 4 or state_move == 5:
-                        print("ddd")
-                        piece = bond.get_case(x, y)
+                        piece = bond.get_plateau()[x,y]
                         bond.set_case(None,x, y)
                         piece.set_pos_x(selected_x)
                         piece.set_pos_y(selected_y)
@@ -130,7 +129,13 @@ def main():
         running = not bond.is_game_over()
         pygame.time.Clock().tick(30)
         pygame.display.flip()
-
+    winners = bond.get_winners()
+    if len(winners) == 2:
+        print("C'est égalité !")
+    elif 0 in winners:
+        print("Joueur blanc a gagné !")
+    elif bond.get_winner() == 1:
+        print("Joueur noir a gagné !")
 
 if __name__ == "__main__":
     main()
