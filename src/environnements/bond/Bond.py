@@ -1,7 +1,9 @@
-from Player import Player
+import torch
+from src.environnements.bond.Player import Player
 from config.bond_config import ROWS, COLS
-import Piece as p
+import src.environnements.bond.Piece as p
 import numpy as np
+import random
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
@@ -66,8 +68,64 @@ class Bond:
         self.move_state += 1
         self.move_state = self.move_state % 2
 
-    def available_action(self):
+    def available_actions(self):
         return self.aa
+    #(case0_une_piece,case0_type0,case0_type1,case0_type2,case0_couleur,...,case15_une_piece,case15_type0,case15_type1,
+    # case15_type2,case15_couleur,nb_piece_restante_P1,nb_piece_sortis_P1,nb_piece_restante_P2,nb_piece_sortis_P2,tour)
+    def one_hot_state_desc(self):
+        one_hot_state = np.zeros(85, dtype=int)
+        i = 0
+        for x in range(self.x):
+            for y in range(self.y):
+                if self.plateau[x, y] is None:
+                    one_hot_state[i] = 0
+                    i += 1
+                    one_hot_state[i] = 0
+                    i += 1
+                    one_hot_state[i] = 0
+                    i += 1
+                    one_hot_state[i] = 0
+                    i += 1
+                    one_hot_state[i] = 0
+                    i += 1
+                else:
+                    one_hot_state[i] = 1
+                    i += 1
+                    piece = self.plateau[x, y]
+                    type_piece = piece.get_type()
+                    if type_piece == 0:
+                        one_hot_state[i] = 1
+                        i += 1
+                    else:
+                        one_hot_state[i] = 0
+                        i += 1
+                    if type_piece == 1:
+                        one_hot_state[i] = 1
+                        i += 1
+                    else:
+                        one_hot_state[i] = 0
+                        i += 1
+                    if type_piece == 2:
+                        one_hot_state[i] = 1
+                        i += 1
+                    else:
+                        one_hot_state[i] = 0
+                        i += 1
+                    color = piece.get_color()
+                    one_hot_state[i] = color
+                    i += 1
+        for player in self.players:
+            one_hot_state[i] = player.get_nbPieceRestante()
+            i += 1
+            one_hot_state[i] = player.get_nbPieceSortis()
+            i += 1
+        one_hot_state[i] = self.get_turn()
+
+        return one_hot_state
+    def get_one_hot_size(self):
+        return 85
+    def num_actions(self):
+        return len(self.aa)
 
     def update_available_actions(self):
         self.aa = np.zeros(144)
@@ -137,6 +195,7 @@ class Bond:
             row,col = self.get_direction(nb_cases,row,col)
             self.placer_pion(row,col,piece)
             self.update_board(row,col)
+        self.one_hot_state_desc()
 
     def get_direction(self,index,row,col):
         directions = {'up': 0, 'down': 1, 'left': 2, 'right': 3, 'up2': 4, 'down2': 5, 'left2': 6, 'right2': 7}
@@ -312,3 +371,28 @@ class Bond:
                     for element in lst:
                         if element not in self.piece_to_delete:
                             self.piece_to_delete.append(element)
+
+    def play_game(self,policy_network):
+        total_reward = 0
+        steps = 0
+
+        # On récupère toutes les actions possibles une fois et on les utilise pendant la partie
+        while not self.is_game_over():
+            if self.get_turn()==0:
+                available_actions = self.available_actions()
+                action = random.choice(available_actions)
+                self.step(action)
+                s = torch.tensor(self.one_hot_state_desc(), dtype=torch.float32)
+                q_values = policy_network(s).detach().numpy()
+                a = np.argmax(q_values)
+                self.step(a)
+                reward = self.score()
+                total_reward += reward
+            else:
+                available_actions = self.available_actions()
+                action = random.choice(available_actions)
+                self.step(action)
+            steps += 1
+
+        print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
+        return total_reward

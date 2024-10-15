@@ -62,7 +62,7 @@ def main():
 
         else:
             if solo and bond.get_turn() == 1:
-                aa = bond.available_action()
+                aa = bond.available_actions()
                 action = random.choice(aa)
                 bond.step(action)
             game_ui.afficher_plateau()
