@@ -7,7 +7,7 @@ class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
         self.x = x
         self.y = y
-        self.plateau = [[None for _ in range(self.x)] for _ in range(self.y)]
+        self.plateau = np.full((self.y, self.x), None)
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
@@ -30,10 +30,6 @@ class Bond:
     # Getter et Setter pour plateau
     def get_plateau(self):
         return self.plateau
-
-    def set_plateau(self, plateau):
-        self._plateau = plateau
-
 
     # Getter et Setter pour players
     def get_players(self):
@@ -58,8 +54,8 @@ class Bond:
     def placer_pion(self, x, y, piece):
 
         if 0 <= x < self.x and 0 <= y < self.y:
-            if self.plateau[x][y] is None:
-                self.plateau[x][y] = piece
+            if self.plateau[x, y] is None:
+                self.plateau[x, y] = piece
                 return True
             else:
                 return False
@@ -72,8 +68,8 @@ class Bond:
         self.get_plateau()[x][y] = Piece
 
     def check_piece_color(self, x, y):
-        if self.plateau[x][y]:
-            return self.plateau[x][y].get_color() == self.get_turn()
+        if self.plateau[x, y]:
+            return self.plateau[x, y].get_color() == self.get_turn()
         return None
 
     def get_turn(self):
@@ -91,7 +87,7 @@ class Bond:
         i = 0
         for x in range(self.x):
             for y in range(self.y):
-                if not self.plateau[x][y] and self.players[self.get_turn()].get_nbPieceRestante() >0 :  # Si la case n'est pas vide
+                if not self.plateau[x, y] and self.players[self.get_turn()].get_nbPieceRestante() >0 :  # Si la case n'est pas vide
                     self.aa[i] = 1
                 i+=1
 
@@ -121,10 +117,10 @@ class Bond:
                     elif direction == 'right2':
                         new_y += 2
                     condition = True
-                    if curr_type == 2 and self.plateau[x][y]:
+                    if curr_type == 2 and self.plateau[x, y]:
                         condition = curr_type == self.get_case(x, y).get_type()
                     # Vérifier si la nouvelle position est valide et vide et que la piece courante est de la couleur du joueur courant
-                    if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.plateau[new_x][new_y] and self.check_piece_color(x, y) and condition:
+                    if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.plateau[new_x, new_y] and self.check_piece_color(x, y) and condition:
                         self.aa[i] = 1
                     i += 1
         self.all_actions = self.aa
@@ -210,7 +206,7 @@ class Bond:
         return coordonnees
 
     def reset(self):
-        self.plateau = [[None for _ in range(self.x)] for _ in range(self.y)]
+        self.plateau = np.full((self.y, self.x), None)
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0
@@ -254,21 +250,21 @@ class Bond:
 
     def check_piece_to_develop(self,x,y):
         if x - 1 >= 0:
-            if self.plateau[x - 1][y]:
-                piece = self.plateau[x - 1][y]
-                self.plateau[x - 1][y] = self.develop_piece(piece)
+            if self.plateau[x - 1,y]:
+                piece = self.plateau[x - 1,y]
+                self.plateau[x - 1,y] = self.develop_piece(piece)
         if x + 1 < self.x:
-            if self.plateau[x + 1][y]:
-                piece = self.plateau[x + 1][y]
-                self.plateau[x + 1][y] = self.develop_piece(piece)
+            if self.plateau[x + 1,y]:
+                piece = self.plateau[x + 1,y]
+                self.plateau[x + 1,y] = self.develop_piece(piece)
         if y - 1 >= 0:
-            if self.plateau[x][y - 1]:
-                piece = self.plateau[x][y - 1]
-                self.plateau[x][y - 1] = self.develop_piece(piece)
+            if self.plateau[x,y - 1]:
+                piece = self.plateau[x,y - 1]
+                self.plateau[x,y - 1] = self.develop_piece(piece)
         if y + 1 < self.y:
-            if self.plateau[x][y + 1]:
-                piece = self.plateau[x][y + 1]
-                self.plateau[x][y + 1] = self.develop_piece(piece)
+            if self.plateau[x,y + 1]:
+                piece = self.plateau[x,y + 1]
+                self.plateau[x,y + 1] = self.develop_piece(piece)
 
     def develop_piece(self,piece):
         piece.set_type((piece.get_type() + 1)%3)
@@ -285,7 +281,7 @@ class Bond:
             color = piece.get_color()
             nbPieceSortis = self.players[color % 2].get_nbPieceSortis()
             self.players[color % 2].set_nbPieceSortis(nbPieceSortis + 1)
-            self.plateau[row][col] = None
+            self.plateau[row,col] = None
     def check_row(self):
         for row in self.plateau:
             lst = []
@@ -313,7 +309,7 @@ class Bond:
         for col in range(self.y):
             lst = []
             for row in range(self.x):
-                case = self.plateau[row][col]
+                case = self.plateau[row,col]
                 if case:  # si c'est une piece
                     if not lst:  # si la liste est vide
                         lst.append(case)
