@@ -22,7 +22,7 @@ class QNet(nn.Module):
         # Définition des couches cachées
         self.hidden_layers = nn.ModuleList()
         for i in range(len(hidden_layer_sizes) - 1):
-            self.hidden_layers.append(nn.Linear(85, 32))
+            self.hidden_layers.append(nn.Linear(hidden_layer_sizes[i], hidden_layer_sizes[i + 1]))
 
         # Définition de la couche de sortie
         self.output_layer = nn.Linear(hidden_layer_sizes[-1], num_actions)
@@ -34,10 +34,7 @@ class QNet(nn.Module):
 
     def forward(self, x):
         # Propagation avant à travers la couche d'entrée avec la fonction d'activation ReLU
-        if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x).float()  # Assurez-vous que le type soit flottant
-        else:
-            x = torch.relu(self.input_layer(x))
+        x = torch.relu(self.input_layer(x))
         # Propagation avant à travers les couches cachées avec la fonction d'activation ReLU
         for layer in self.hidden_layers:
             x = torch.relu(layer(x))

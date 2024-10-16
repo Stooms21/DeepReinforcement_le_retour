@@ -12,7 +12,7 @@ def deep_q_learning(
         epsilon_min: float = 0.01,
         epsilon_decay: float = 0.995,
         gamma: float = 0.999,
-        nb_episode: int = 1000,
+        nb_episode: int = 100,
 ):
     """
     Fonction d'apprentissage par Q-learning profond. Elle retourne le réseau de neurone entrainé.

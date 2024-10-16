@@ -14,7 +14,7 @@ class Bond:
         self.players = [Player(0), Player(1)]
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
         self.aa = np.zeros(144).astype(int)
-        self.all_actions = np.zeros(144)
+        self.all_actions = np.zeros(144).astype(int)
         self.winners = []
     def get_x(self):
         return self.x
@@ -69,7 +69,7 @@ class Bond:
         self.move_state = self.move_state % 2
 
     def available_actions(self):
-        return self.aa
+        return self.all_actions
     #(case0_une_piece,case0_type0,case0_type1,case0_type2,case0_couleur,...,case15_une_piece,case15_type0,case15_type1,
     # case15_type2,case15_couleur,nb_piece_restante_P1,nb_piece_sortis_P1,nb_piece_restante_P2,nb_piece_sortis_P2,tour)
     def one_hot_state_desc(self):
@@ -121,14 +121,14 @@ class Bond:
             i += 1
         one_hot_state[i] = self.get_turn()
 
-        return one_hot_state
+        return torch.tensor(one_hot_state, dtype=torch.float32)
     def get_one_hot_size(self):
         return 85
     def num_actions(self):
-        return len(self.aa)
+        return len(self.all_actions)
 
     def update_available_actions(self):
-        self.aa = np.zeros(144)
+        self.aa = np.zeros(144).astype(int)
         i = 0
         for x in range(self.x):
             for y in range(self.y):
@@ -168,7 +168,7 @@ class Bond:
                     if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.plateau[new_x, new_y] and self.check_piece_color(x, y) and condition:
                         self.aa[i] = 1
                     i += 1
-        self.all_actions = self.aa
+        self.all_actions = np.copy(self.aa)
         self.aa = np.where(self.aa == 1)[0]
 
     def get_move_available(self,x,y):
@@ -372,10 +372,10 @@ class Bond:
                         if element not in self.piece_to_delete:
                             self.piece_to_delete.append(element)
 
-    def play_game(self,policy_network):
+    def play(self,policy_network):
         total_reward = 0
         steps = 0
-
+        self.reset()
         # On récupère toutes les actions possibles une fois et on les utilise pendant la partie
         while not self.is_game_over():
             if self.get_turn()==0:
