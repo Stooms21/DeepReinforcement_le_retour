@@ -5,8 +5,14 @@ from game_ui import GameUI
 from Bond import Bond
 from Piece import Piece
 import random
+import torch
+import numpy as np
+from src.algorithmes.deep_q_learning import deep_q_learning
 
 def main():
+    env = Bond()
+    #policy_network = deep_q_learning(env)
+
     # Initialisation de Pygame
     pygame.init()
 
@@ -33,6 +39,7 @@ def main():
     selected_x, selected_y = 0,0
     solo = True
     menu = True
+    aaa = True
     while running:
         if menu:
             button_1player, button_2player = game_ui.draw_buttons()
@@ -62,12 +69,25 @@ def main():
 
         else:
             if solo and bond.get_turn() == 1:
-                aa = bond.available_actions()
+                #s = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32)
+                #q_values = policy_network(s).detach().numpy()
+                #a = np.argmax(q_values)
+                #bond.step(a)
+
+                #random
+                aa = bond.get_aa()
                 action = random.choice(aa)
                 bond.step(action)
+            if aaa:
+                bond.placer_pion(0,0,Piece(0, 0, bond.get_turn()))
+                bond.placer_pion(0, 2, Piece(0, 2, bond.get_turn()))
+                bond.placer_pion(1, 0, Piece(1, 0, bond.get_turn()))
+                bond.placer_pion(1, 1, Piece(1, 1, bond.get_turn()))
+                bond.placer_pion(1, 2, Piece(1, 2, bond.get_turn()))
+                aaa = False
             game_ui.afficher_plateau()
             bt3 = game_ui.draw_button_menu()
-
+            btB , btF = game_ui.draw_back_forward()
             mouse_x, mouse_y = pygame.mouse.get_pos()
             highlighted_intersection = game_ui.check_intersection(mouse_x, mouse_y)
             if highlighted_intersection:
@@ -86,12 +106,21 @@ def main():
                         menu = True
                         game_ui.clear()
                         bond.reset()
+                    if btF.collidepoint(event.pos):
+                        if len(bond.get_lst_plateau()) > bond.get_curr_plateau() + 1:
+                            bond.set_plateau(bond.get_lst_plateau()[bond.get_curr_plateau() + 1])
+                            bond.set_curr_plateau(bond.get_curr_plateau() + 1)
+                    if btB.collidepoint(event.pos):
+                        if 0 <= bond.get_curr_plateau() - 1:
+                            bond.set_plateau(bond.get_lst_plateau()[bond.get_curr_plateau() - 1])
+                            bond.set_curr_plateau(bond.get_curr_plateau() - 1)
 
                     if (state_move == 2 or state_move == 3) and selected_x == x and selected_y == y:
                         bond.placer_pion(x, y, Piece(x, y, bond.get_turn()))
                         bond.update_board(x, y)
                         game_ui.handle_click(None)
-                    elif state_move == 4 or state_move == 5:
+                        game_ui.handle_click_on_piece(None)
+                    elif state_move == 4 or state_move == 5 and highlighted_intersection:
                         piece = bond.get_plateau()[x,y]
                         bond.set_case(None,x, y)
                         piece.set_pos_x(selected_x)
@@ -125,17 +154,16 @@ def main():
             if highlighted_intersection:
                 game_ui.draw_area(highlighted_intersection[0], highlighted_intersection[1], game_ui.hover_color)
 
-        bond.check_piece_to_scored()
-        running = not bond.is_game_over()
         pygame.time.Clock().tick(30)
         pygame.display.flip()
-    winners = bond.get_winners()
-    if len(winners) == 2:
-        print("C'est égalité !")
-    elif 0 in winners:
-        print("Joueur blanc a gagné !")
-    elif bond.get_winner() == 1:
-        print("Joueur noir a gagné !")
+
+        winners = bond.get_winners()
+        if len(winners) == 2:
+            print("C'est égalité !")
+        elif 0 in winners:
+            print("Joueur blanc a gagné !")
+        elif 1 in winners:
+            print("Joueur noir a gagné !")
 
 if __name__ == "__main__":
     main()

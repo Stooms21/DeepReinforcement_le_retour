@@ -4,6 +4,7 @@ from config.bond_config import ROWS, COLS
 import src.environnements.bond.Piece as p
 import numpy as np
 import random
+import copy
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
@@ -16,6 +17,10 @@ class Bond:
         self.aa = np.zeros(144).astype(int)
         self.all_actions = np.zeros(144).astype(int)
         self.winners = []
+        self.lst_plateau = []
+        self.lst_plateau.append(self.plateau.copy())
+        self.curr_plateau = 0
+
     def get_x(self):
         return self.x
 
@@ -25,6 +30,19 @@ class Bond:
 
     def get_plateau(self):
         return self.plateau
+
+    def set_plateau(self,plateau):
+        self.plateau = copy.deepcopy(plateau.copy())
+
+    def get_lst_plateau(self):
+        return self.lst_plateau
+
+    def get_curr_plateau(self):
+        return self.curr_plateau
+
+    def set_curr_plateau(self, val):
+        self.curr_plateau = val
+
     # Getter et Setter pour players
     def get_players(self):
         return self.players
@@ -70,6 +88,10 @@ class Bond:
 
     def available_actions(self):
         return self.all_actions
+
+    def get_aa(self):
+        return self.aa
+
     #(case0_une_piece,case0_type0,case0_type1,case0_type2,case0_couleur,...,case15_une_piece,case15_type0,case15_type1,
     # case15_type2,case15_couleur,nb_piece_restante_P1,nb_piece_sortis_P1,nb_piece_restante_P2,nb_piece_sortis_P2,tour)
     def one_hot_state_desc(self):
@@ -122,8 +144,10 @@ class Bond:
         one_hot_state[i] = self.get_turn()
 
         return torch.tensor(one_hot_state, dtype=torch.float32)
+
     def get_one_hot_size(self):
         return 85
+
     def num_actions(self):
         return len(self.all_actions)
 
@@ -162,8 +186,8 @@ class Bond:
                     elif direction == 'right2':
                         new_y += 2
                     condition = True
-                    if curr_type == 2 and self.plateau[x, y]:
-                        condition = curr_type == self.plateau[x,y].get_type()
+                    if self.plateau[x, y]:
+                        condition = curr_type == self.plateau[x,y].get_type() or  self.plateau[x,y].get_type() == 2
                     # Vérifier si la nouvelle position est valide et vide et que la piece courante est de la couleur du joueur courant
                     if 0 <= new_x < self.x and 0 <= new_y < self.y and not self.plateau[new_x, new_y] and self.check_piece_color(x, y) and condition:
                         self.aa[i] = 1
@@ -183,6 +207,7 @@ class Bond:
         if action<=15 :
             row = action // self.x
             col = action % self.y
+            #print("Move to ",row,col)
             self.placer_pion(row,col,p.Piece(row,col,self.get_turn()))
             self.update_board(row,col)
         else:
@@ -191,33 +216,33 @@ class Bond:
             row = nb_cases // self.x
             col = nb_cases % self.y
             piece = self.plateau[row,col]
-            self.set_case(piece,row,col)
-            row,col = self.get_direction(nb_cases,row,col)
+            self.set_case(None,row,col)
+            #print("Move from ",row,col)
+            move = action % 8
+            row,col = self.get_direction(move,row,col)
+            #print("to ", row, col)
             self.placer_pion(row,col,piece)
             self.update_board(row,col)
         self.one_hot_state_desc()
 
     def get_direction(self,index,row,col):
-        directions = {'up': 0, 'down': 1, 'left': 2, 'right': 3, 'up2': 4, 'down2': 5, 'left2': 6, 'right2': 7}
         new_x, new_y = row, col
-
-        for direction, dir_idx in directions.items():
-            if dir_idx == index:
-                new_x -= 1
-            elif dir_idx == index:
-                new_x += 1
-            elif dir_idx == index:
-                new_y -= 1
-            elif dir_idx == index:
-                new_y += 1
-            elif dir_idx == index:
-                new_x -= 2
-            elif dir_idx == index:
-                new_x += 2
-            elif dir_idx == index:
-                new_y -= 2
-            elif dir_idx == index:
-                new_y += 2
+        if 0 == index:
+            new_x -= 1
+        elif 1 == index:
+            new_x += 1
+        elif 2 == index:
+            new_y -= 1
+        elif 3 == index:
+            new_y += 1
+        elif 4 == index:
+            new_x -= 2
+        elif 5 == index:
+            new_x += 2
+        elif 6 == index:
+            new_y -= 2
+        elif 7 == index:
+            new_y += 2
 
         return new_x, new_y
 
@@ -225,7 +250,10 @@ class Bond:
         self.get_curr_player().set_nbPieceRestante()
         self.check_piece_to_develop(x, y)
         self.set_turn()
+        self.check_piece_to_scored()
         self.update_available_actions()
+        self.lst_plateau.append(copy.deepcopy(self.plateau.copy()))
+        self.curr_plateau += 1
 
     def get_coordonnees_by_vector(self,moves,nb_case):
         row = nb_case // self.x
@@ -256,28 +284,35 @@ class Bond:
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0
+        self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
+        self.aa = np.zeros(144).astype(int)
+        self.all_actions = np.zeros(144).astype(int)
+        self.winners = []
+        self.lst_plateau = []
+        self.lst_plateau.append(self.plateau.copy())
+        self.curr_plateau = 0
 
     def is_game_over(self):
         game_over = False
         for player in self.players:
             if player.get_nbPieceSortis() >= 10:
-                #print("gagné par pièce sortis")
+                print("gagné par pièce sortis")
                 self.add_winner(player.get_color())
                 game_over = True
             elif player.get_nbPieceRestante() == 0:
-                #print("perdu par manque de pièce")
+                print("perdu par manque de pièce")
                 self.add_winner((player.get_color() + 1) %2)
                 game_over = True
 
         curr_player = self.get_curr_player()
-
-        if not self.aa.size == 0:
+        if self.aa.size == 0:
             if curr_player not in self.winners:
-                #print("perdu par manque de coup")
+                print("perdu par manque de coup")
                 self.add_winner(curr_player.get_color())
+                game_over = True
 
-        #if len(self.winners) == 2:
-            #print("c'est égalité")
+        if len(self.winners) == 2:
+            print("c'est égalité")
 
         return game_over or self.aa.size == 0
 
@@ -321,27 +356,28 @@ class Bond:
         self.piece_to_delete = []
         self.check_row()
         self.check_col()
-
         for piece in self.piece_to_delete: #supprime les rangées
             row = piece.get_pos_x()
             col = piece.get_pos_y()
             color = piece.get_color()
             nbPieceSortis = self.players[color % 2].get_nbPieceSortis()
-            self.players[color % 2].set_nbPieceSortis(nbPieceSortis + 1)
+            for player in self.players:
+                if player.get_color() == color:
+                    player.set_nbPieceSortis(nbPieceSortis + 1)
             self.plateau[row,col] = None
     def check_row(self):
-        for row in self.plateau:
+        for x in range(self.x):
             lst = []
-            for case in row:
-                if case: #si c'est une piece
+            for y in range(self.y):
+                if self.plateau[x,y]: #si c'est une piece
                     if not lst: #si la liste est vide
-                        lst.append(case)
-                    elif lst[-1].get_type() == case.get_type(): #si c'est du même type
-                        lst.append(case)
+                        lst.append(self.plateau[x,y])
+                    elif lst[-1].get_type() == self.plateau[x,y].get_type(): #si c'est du même type
+                        lst.append(self.plateau[x,y])
                     else:
                         if len(lst) < 3:
                             lst.clear()
-                            lst.append(case)
+                            lst.append(self.plateau[x,y])
                 else:
                     if len(lst) < 3:
                         lst.clear()
@@ -376,12 +412,8 @@ class Bond:
         total_reward = 0
         steps = 0
         self.reset()
-        # On récupère toutes les actions possibles une fois et on les utilise pendant la partie
         while not self.is_game_over():
             if self.get_turn()==0:
-                available_actions = self.available_actions()
-                action = random.choice(available_actions)
-                self.step(action)
                 s = torch.tensor(self.one_hot_state_desc(), dtype=torch.float32)
                 q_values = policy_network(s).detach().numpy()
                 a = np.argmax(q_values)
@@ -389,10 +421,16 @@ class Bond:
                 reward = self.score()
                 total_reward += reward
             else:
-                available_actions = self.available_actions()
+                available_actions = self.get_aa()
                 action = random.choice(available_actions)
                 self.step(action)
+
             steps += 1
 
+        for p in self.players:
+            print("Toueur du joueur", p.get_color())
+            print(",il lui reste ", p.get_nbPieceRestante())
+            print("et il a réussi à sortir ", p.get_nbPieceSortis())
+        print(self.winners)
         print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
         return total_reward

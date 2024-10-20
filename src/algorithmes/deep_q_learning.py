@@ -1,7 +1,7 @@
 from src.utils import utils as ut
 import src.utils.dqn_utils as dqu
 import tqdm
-import models
+import src.algorithmes.models as models
 from config.algos_config import CONFIG_FILE, DQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 import src.environnements.bond.Bond as b
 
@@ -65,12 +65,13 @@ if __name__ == "__main__":
     env = b.Bond()
     reward = 0
     # Boucle pour jouer 10 parties
-    for i in range(1, 11):
+    for i in range(1, 2):
         # Réinitialiser l'environnement
         env.reset()
         # Appliquer l'apprentissage par Q-learning profond
         policy_network = deep_q_learning(env)
         # Jouer une partie avec le réseau de politique appris
+
         reward += env.play(policy_network)
         # Afficher la récompense moyenne sur les parties jouées
         print(f"Reward moyen: {reward / i} sur {i} parties")

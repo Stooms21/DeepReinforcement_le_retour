@@ -11,7 +11,7 @@ def play_game(_):
 
     # On récupère toutes les actions possibles une fois et on les utilise pendant la partie
     while not bond.is_game_over():
-        available_actions = bond.available_actions()
+        available_actions = bond.get_aa()
         action = random.choice(available_actions)
         bond.step(action)
 

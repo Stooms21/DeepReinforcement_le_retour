@@ -51,7 +51,6 @@ class GameUI:
             self.draw_area(self.selected_position[0], self.selected_position[1], self.selected_color)
         if self.move_available:
             for move in self.move_available:
-                print(move)
                 self.draw_area(start_x + move[1] * (CELL_SIZE + MARGIN) , start_y + move[0] * (CELL_SIZE + MARGIN) , self.selected_color)
         font = pygame.font.SysFont(None, 40)
         if not self.bond.get_turn():
@@ -145,6 +144,26 @@ class GameUI:
 
         self.window.blit(text_3player, (button_3player.x + 12, button_3player.y + 12))
         return button_3player
+
+    def draw_back_forward(self):
+        WHITE = (255, 255, 255)
+        BLACK = (0, 0, 0)
+
+        font = pygame.font.SysFont(None, 30)
+        button_back = pygame.Rect(500, 15, 20, 30)
+        text_back = font.render('<', True, WHITE)
+        pygame.draw.rect(self.window, BLACK, button_back)
+
+        self.window.blit(text_back, (button_back.x + 5, button_back.y + 5))
+
+        button_forward = pygame.Rect(532, 15, 20, 30)
+        text_forward = font.render('>', True, WHITE)
+        pygame.draw.rect(self.window, BLACK, button_forward)
+
+        self.window.blit(text_forward, (button_forward.x + 5, button_forward.y + 5))
+
+        return button_back,button_forward
+
     def clear(self):
         self.window.fill(self.background_color)
 
