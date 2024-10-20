@@ -50,7 +50,6 @@ def main():
                     pygame.quit()
                     sys.exit()
 
-
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if button_1player.collidepoint(event.pos):
                         print("1 Joueur sélectionné")
@@ -72,7 +71,31 @@ def main():
                         menu = False
                         simulate = True
         else:
-            if solo and bond.get_turn() == 1:
+            game_ui.afficher_plateau()
+            bt3 = game_ui.draw_button_menu()
+            btB , btF = game_ui.draw_back_forward()
+
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            highlighted_intersection = game_ui.check_intersection(mouse_x, mouse_y)
+            if highlighted_intersection:
+                selected_x ,  selected_y = highlighted_intersection[2],highlighted_intersection[3]
+            state_move = bond.get_move_state()
+            if simulate:
+                trye = 1
+                while(not bond.is_game_over()):
+                    end = False
+                    aa = bond.get_aa()
+                    action = random.choice(aa)
+                    bond.step(action)
+                    if bond.is_game_over():
+                        for player in bond.get_players():
+                            if player.get_nbPieceSortis() >= 10:
+                                end = True
+                    if not end and bond.is_game_over():
+                        print(trye)
+                        trye+=1
+                        bond.reset()
+            elif solo and bond.get_turn() == 1:
                 #s = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32)
                 #q_values = policy_network(s).detach().numpy()
                 #a = np.argmax(q_values)
@@ -83,24 +106,6 @@ def main():
                 action = random.choice(aa)
                 bond.step(action)
 
-            if simulate:
-                while(not bond.is_game_over()):
-                    aa = bond.get_aa()
-                    action = random.choice(aa)
-                    bond.step(action)
-                    game_ui.afficher_plateau()
-                    bt3 = game_ui.draw_button_menu()
-                    btB, btF = game_ui.draw_back_forward()
-
-            game_ui.afficher_plateau()
-            bt3 = game_ui.draw_button_menu()
-            btB , btF = game_ui.draw_back_forward()
-
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            highlighted_intersection = game_ui.check_intersection(mouse_x, mouse_y)
-            if highlighted_intersection:
-                selected_x ,  selected_y = highlighted_intersection[2],highlighted_intersection[3]
-            state_move = bond.get_move_state()
             for event in pygame.event.get():
 
 
@@ -129,14 +134,13 @@ def main():
                         game_ui.handle_click(None)
                         game_ui.handle_click_on_piece(None)
                     elif state_move == 4 or state_move == 5 and highlighted_intersection:
-                        piece = bond.get_plateau()[x,y]
+                        piece_type = bond.get_plateau()[x, y].get_type()
                         bond.set_case(None,x, y)
-                        piece.set_pos_x(selected_x)
-                        piece.set_pos_y(selected_y)
-                        bond.placer_pion(selected_x, selected_y, piece)
+                        bond.placer_pion(selected_x, selected_y, Piece(selected_x, selected_y, bond.get_turn(), piece_type))
                         bond.update_board(selected_x, selected_y)
                         game_ui.handle_click(None)
                         game_ui.handle_click_on_piece(None)
+
                     else:
                         game_ui.handle_click_on_piece(highlighted_intersection)
                         if not game_ui.get_move_available():
@@ -162,7 +166,7 @@ def main():
             if highlighted_intersection:
                 game_ui.draw_area(highlighted_intersection[0], highlighted_intersection[1], game_ui.hover_color)
 
-        pygame.time.Clock().tick(30)
+        pygame.time.Clock().tick(60)
         pygame.display.flip()
 
     winners = bond.get_winners()

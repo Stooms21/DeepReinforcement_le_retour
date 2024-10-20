@@ -18,7 +18,7 @@ class Bond:
         self.all_actions = np.zeros(144).astype(int)
         self.winners = []
         self.lst_plateau = []
-        self.lst_plateau.append(self.plateau.copy())
+        self.lst_plateau.append(np.full((self.y, self.x), None))
         self.curr_plateau = 0
         self.curr_score = [(0,0)]
     def get_x(self):
@@ -29,7 +29,7 @@ class Bond:
         return self.y
 
     def get_plateau(self):
-        return self.plateau
+        return copy.deepcopy(self.plateau.copy())
 
     def set_plateau(self,plateau):
         self.plateau = copy.deepcopy(plateau.copy())
@@ -210,6 +210,7 @@ class Bond:
         if action<=15 :
             row = action // self.x
             col = action % self.y
+            #print("Joueur ",self.get_turn())
             #print("Move to ",row,col)
             self.placer_pion(row,col,p.Piece(row,col,self.get_turn()))
             self.update_board(row,col)
@@ -220,6 +221,7 @@ class Bond:
             col = nb_cases % self.y
             piece_type = self.plateau[row,col].get_type()
             self.set_case(None,row,col)
+            #print("Joueur ",self.get_turn())
             #print("Move from ",row,col)
             move = action % 8
             row,col = self.get_direction(move,row,col)
@@ -286,7 +288,6 @@ class Bond:
         self.plateau = np.full((self.y, self.x), None)
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
-        self.move_state = 0
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
         self.aa = np.zeros(144).astype(int)
         self.all_actions = np.zeros(144).astype(int)
@@ -294,6 +295,7 @@ class Bond:
         self.lst_plateau = []
         self.lst_plateau.append(self.plateau.copy())
         self.curr_plateau = 0
+        self.curr_score = [(0,0)]
 
     def is_game_over(self):
         game_over = False

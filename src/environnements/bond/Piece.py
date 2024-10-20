@@ -1,12 +1,18 @@
 class Piece:
-    def __init__(self, x, y,color,type = 0):
+    def __init__(self, x, y,color,default_type = 0):
         self.pos_x = x
         self.pos_y = y
-        self.type = type #gun 0,smg 1,bazooka 2
+        self.type = default_type #gun 0,smg 1,bazooka 2
         if color % 2 == 0:
-            self.img = "img/gun.webp"
+            nb = ""
         else:
-            self.img = "img/gun2.webp"
+            nb = "2"
+        if default_type == 0:
+            self.img = f"img/gun{nb}.webp"
+        if default_type == 1:
+            self.img = f"img/mitraillette{nb}.webp"
+        if default_type == 2:
+            self.img = f"img/bazooka{nb}.png"
         self.color = color
 
     # Getters
