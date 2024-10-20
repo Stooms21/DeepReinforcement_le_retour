@@ -1,8 +1,8 @@
 class Piece:
-    def __init__(self, x, y,color):
+    def __init__(self, x, y,color,type = 0):
         self.pos_x = x
         self.pos_y = y
-        self.type = 0 #gun 0,smg 1,bazooka 2
+        self.type = type #gun 0,smg 1,bazooka 2
         if color % 2 == 0:
             self.img = "img/gun.webp"
         else:

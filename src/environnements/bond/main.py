@@ -39,10 +39,10 @@ def main():
     selected_x, selected_y = 0,0
     solo = True
     menu = True
-    aaa = True
+    simulate = False
     while running:
         if menu:
-            button_1player, button_2player = game_ui.draw_buttons()
+            button_1player, button_2player ,bt_simulate= game_ui.draw_buttons()
             bt3 = game_ui.draw_button_menu()
 
             for event in pygame.event.get():
@@ -57,16 +57,20 @@ def main():
                         # Ajouter ici ce que vous voulez faire en mode 1 joueur
                         menu = False
                         solo = True
+                        simulate = False
                     elif button_2player.collidepoint(event.pos):
                         print("2 Joueurs sélectionné")
                         # Ajouter ici ce que vous voulez faire en mode 2 joueurs
                         menu = False
                         solo = False
-
+                        simulate = False
                     elif bt3.collidepoint(event.pos):
                         menu = True
                         solo = False
-
+                        simulate = False
+                    elif bt_simulate.collidepoint(event.pos):
+                        menu = False
+                        simulate = True
         else:
             if solo and bond.get_turn() == 1:
                 #s = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32)
@@ -78,16 +82,20 @@ def main():
                 aa = bond.get_aa()
                 action = random.choice(aa)
                 bond.step(action)
-            if aaa:
-                bond.placer_pion(0,0,Piece(0, 0, bond.get_turn()))
-                bond.placer_pion(0, 2, Piece(0, 2, bond.get_turn()))
-                bond.placer_pion(1, 0, Piece(1, 0, bond.get_turn()))
-                bond.placer_pion(1, 1, Piece(1, 1, bond.get_turn()))
-                bond.placer_pion(1, 2, Piece(1, 2, bond.get_turn()))
-                aaa = False
+
+            if simulate:
+                while(not bond.is_game_over()):
+                    aa = bond.get_aa()
+                    action = random.choice(aa)
+                    bond.step(action)
+                    game_ui.afficher_plateau()
+                    bt3 = game_ui.draw_button_menu()
+                    btB, btF = game_ui.draw_back_forward()
+
             game_ui.afficher_plateau()
             bt3 = game_ui.draw_button_menu()
             btB , btF = game_ui.draw_back_forward()
+
             mouse_x, mouse_y = pygame.mouse.get_pos()
             highlighted_intersection = game_ui.check_intersection(mouse_x, mouse_y)
             if highlighted_intersection:
@@ -157,13 +165,13 @@ def main():
         pygame.time.Clock().tick(30)
         pygame.display.flip()
 
-        winners = bond.get_winners()
-        if len(winners) == 2:
-            print("C'est égalité !")
-        elif 0 in winners:
-            print("Joueur blanc a gagné !")
-        elif 1 in winners:
-            print("Joueur noir a gagné !")
+    winners = bond.get_winners()
+    if len(winners) == 2:
+        print("C'est égalité !")
+    elif 0 in winners:
+        print("Joueur blanc a gagné !")
+    elif 1 in winners:
+        print("Joueur noir a gagné !")
 
 if __name__ == "__main__":
     main()

@@ -20,7 +20,7 @@ class Bond:
         self.lst_plateau = []
         self.lst_plateau.append(self.plateau.copy())
         self.curr_plateau = 0
-
+        self.curr_score = [(0,0)]
     def get_x(self):
         return self.x
 
@@ -42,6 +42,9 @@ class Bond:
 
     def set_curr_plateau(self, val):
         self.curr_plateau = val
+
+    def get_curr_score(self):
+        return self.curr_score
 
     # Getter et Setter pour players
     def get_players(self):
@@ -215,13 +218,13 @@ class Bond:
             nb_cases = action // 8
             row = nb_cases // self.x
             col = nb_cases % self.y
-            piece = self.plateau[row,col]
+            piece_type = self.plateau[row,col].get_type()
             self.set_case(None,row,col)
             #print("Move from ",row,col)
             move = action % 8
             row,col = self.get_direction(move,row,col)
             #print("to ", row, col)
-            self.placer_pion(row,col,piece)
+            self.placer_pion(row,col,p.Piece(row,col,self.get_turn(),piece_type))
             self.update_board(row,col)
         self.one_hot_state_desc()
 
@@ -296,23 +299,23 @@ class Bond:
         game_over = False
         for player in self.players:
             if player.get_nbPieceSortis() >= 10:
-                print("gagné par pièce sortis")
+                #print("gagné par pièce sortis")
                 self.add_winner(player.get_color())
                 game_over = True
             elif player.get_nbPieceRestante() == 0:
-                print("perdu par manque de pièce")
+                #print("perdu par manque de pièce")
                 self.add_winner((player.get_color() + 1) %2)
                 game_over = True
 
         curr_player = self.get_curr_player()
         if self.aa.size == 0:
             if curr_player not in self.winners:
-                print("perdu par manque de coup")
+                #print("perdu par manque de coup")
                 self.add_winner(curr_player.get_color())
                 game_over = True
 
-        if len(self.winners) == 2:
-            print("c'est égalité")
+        #if len(self.winners) == 2:
+            #print("c'est égalité")
 
         return game_over or self.aa.size == 0
 
@@ -365,6 +368,9 @@ class Bond:
                 if player.get_color() == color:
                     player.set_nbPieceSortis(nbPieceSortis + 1)
             self.plateau[row,col] = None
+        score = (self.players[0].get_nbPieceSortis() ,  self.players[1].get_nbPieceSortis())
+        self.curr_score.append(score)
+
     def check_row(self):
         for x in range(self.x):
             lst = []
@@ -417,6 +423,7 @@ class Bond:
                 s = torch.tensor(self.one_hot_state_desc(), dtype=torch.float32)
                 q_values = policy_network(s).detach().numpy()
                 a = np.argmax(q_values)
+                print(a)
                 self.step(a)
                 reward = self.score()
                 total_reward += reward

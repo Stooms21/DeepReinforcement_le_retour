@@ -53,16 +53,16 @@ class GameUI:
             for move in self.move_available:
                 self.draw_area(start_x + move[1] * (CELL_SIZE + MARGIN) , start_y + move[0] * (CELL_SIZE + MARGIN) , self.selected_color)
         font = pygame.font.SysFont(None, 40)
-        if not self.bond.get_turn():
+        if self.bond.get_curr_plateau() % 2 == 0:
             title_text = font.render("Tour du joueur blanc", True, (0, 0, 0))
         else:
             title_text = font.render("Tour du joueur noir", True, (0, 0, 0))
 
         self.window.blit(title_text,
                          (self.window.get_width() // 2 - title_text.get_width() // 2, OUTER_MARGIN // 2 + 50))
-        players = self.bond.get_players()
-        nbsortisP1 =  "B: " + str(players[0].get_nbPieceSortis())
-        nbsortisP2 = "N: " + str(players[1].get_nbPieceSortis())
+        curr_score = self.bond.get_curr_score()[self.bond.get_curr_plateau()]
+        nbsortisP1 =  "B: " + str(curr_score[0])
+        nbsortisP2 = "N: " + str(curr_score[1])
         title_text = font.render(nbsortisP1, True, (0, 0, 0))
         self.window.blit(title_text,
                          (20, OUTER_MARGIN // 2 + 50))
@@ -123,15 +123,20 @@ class GameUI:
         # Créer les boutons
         button_1player = pygame.Rect(220, 150, 200, 50)
         button_2player = pygame.Rect(220, 250, 200, 50)
+        button_simulate = pygame.Rect(220, 350, 200, 50)
         # Définir les textes des boutons
         text_1player = font.render('1 Joueur', True, WHITE)
         text_2player = font.render('2 Joueurs', True, WHITE)
+        font = pygame.font.SysFont(None, 25)
+        text_simulate = font.render('Simuler une partie', True, WHITE)
         pygame.draw.rect(self.window, BLUE, button_1player)
         pygame.draw.rect(self.window, GREEN, button_2player)
+        pygame.draw.rect(self.window, GREEN, button_simulate)
         self.window.blit(text_1player, (button_1player.x + 35, button_1player.y + 5))
         self.window.blit(text_2player, (button_2player.x + 25, button_2player.y + 5))
+        self.window.blit(text_simulate, (button_simulate.x + 25, button_simulate.y + 5))
 
-        return button_1player, button_2player
+        return button_1player, button_2player, button_simulate
 
     def draw_button_menu(self):
         WHITE = (255, 255, 255)
