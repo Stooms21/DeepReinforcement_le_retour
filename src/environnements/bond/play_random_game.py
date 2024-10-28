@@ -11,7 +11,7 @@ def play_game(_):
 
     # On récupère toutes les actions possibles une fois et on les utilise pendant la partie
     while not bond.is_game_over():
-        available_actions = bond.get_aa()
+        available_actions = bond.available_actions_ids()
         action = random.choice(available_actions)
         bond.step(action)
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Mesurer pour 1000 parties avec un nombre de processus égal aux cœurs CPU disponibles
     nombre_de_processus = multiprocessing.cpu_count()  # Utilise tous les cœurs disponibles
-    temps_total, parties_par_seconde = mesurer_vitesse_multiprocessing(nombre_de_parties, 8)
+    temps_total, parties_par_seconde = mesurer_vitesse_multiprocessing(nombre_de_parties, nombre_de_processus)
 
     # Affichage des résultats
     print(f"Temps total pour {nombre_de_parties} parties avec {8} processus : {temps_total:.2f} secondes")

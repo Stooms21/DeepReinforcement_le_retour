@@ -5,6 +5,7 @@ import src.environnements.bond.Piece as p
 import numpy as np
 import random
 import copy
+from src.algorithmes.utc import utc
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
@@ -92,7 +93,7 @@ class Bond:
     def available_actions(self):
         return self.all_actions
 
-    def get_aa(self):
+    def available_actions_ids(self):
         return self.aa
 
     #(case0_une_piece,case0_type0,case0_type1,case0_type2,case0_couleur,...,case15_une_piece,case15_type0,case15_type1,
@@ -430,7 +431,7 @@ class Bond:
                 reward = self.score()
                 total_reward += reward
             else:
-                available_actions = self.get_aa()
+                available_actions = self.available_actions_ids()
                 action = random.choice(available_actions)
                 self.step(action)
 
@@ -440,6 +441,38 @@ class Bond:
             print("Toueur du joueur", p.get_color())
             print(",il lui reste ", p.get_nbPieceRestante())
             print("et il a réussi à sortir ", p.get_nbPieceSortis())
+        print(self.winners)
+        print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
+        return total_reward
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def play_with_utc(self):
+        return utc(self,100)
+
+    def play(self):
+        total_reward = 0
+        steps = 0
+        self.reset()
+        while not self.is_game_over():
+            if self.get_turn()==0:
+                a = self.play_with_utc()
+                self.step(a)
+                reward = self.score()
+                total_reward += reward
+            else:
+                available_actions = self.available_actions_ids()
+                action = random.choice(available_actions)
+                self.step(action)
+
+            steps += 1
+
+        for p in self.players:
+            print("Toueur du joueur", p.get_color())
+            print(",il lui reste ", p.get_nbPieceRestante())
+            print("et il a réussi à sortir ", p.get_nbPieceSortis())
+
         print(self.winners)
         print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
         return total_reward

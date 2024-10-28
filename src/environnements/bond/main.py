@@ -7,7 +7,7 @@ from Piece import Piece
 import random
 import torch
 import numpy as np
-from src.algorithmes.deep_q_learning import deep_q_learning
+from src.algorithmes.utc import utc
 
 def main():
     env = Bond()
@@ -84,7 +84,7 @@ def main():
                 trye = 1
                 while(not bond.is_game_over()):
                     end = False
-                    aa = bond.get_aa()
+                    aa = bond.available_actions_ids()
                     action = random.choice(aa)
                     bond.step(action)
                     if bond.is_game_over():
@@ -102,10 +102,13 @@ def main():
                 #bond.step(a)
 
                 #random
-                aa = bond.get_aa()
-                action = random.choice(aa)
-                bond.step(action)
+                #aa = bond.available_actions_ids()
+                #action = random.choice(aa)
+                #bond.step(action)
 
+                #utc
+                a = utc(bond,100)
+                bond.step(a)
             for event in pygame.event.get():
 
 
@@ -177,5 +180,9 @@ def main():
     elif 1 in winners:
         print("Joueur noir a gagné !")
 
+def utc_against_random():
+    bond = Bond()
+    bond.play()
 if __name__ == "__main__":
     main()
+    #utc_against_random()
