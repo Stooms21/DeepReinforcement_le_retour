@@ -1,3 +1,5 @@
+import math
+
 import torch
 from src.environnements.bond.Player import Player
 from config.bond_config import ROWS, COLS
@@ -22,6 +24,8 @@ class Bond:
         self.lst_plateau.append(np.full((self.y, self.x), None))
         self.curr_plateau = 0
         self.curr_score = [(0,0)]
+        self.state = 0
+        self.one_hot_state_desc()
     def get_x(self):
         return self.x
 
@@ -96,50 +100,32 @@ class Bond:
     def available_actions_ids(self):
         return self.aa
 
-    #(case0_une_piece,case0_type0,case0_type1,case0_type2,case0_couleur,...,case15_une_piece,case15_type0,case15_type1,
-    # case15_type2,case15_couleur,nb_piece_restante_P1,nb_piece_sortis_P1,nb_piece_restante_P2,nb_piece_sortis_P2,tour)
     def one_hot_state_desc(self):
-        one_hot_state = np.zeros(85, dtype=int)
+        one_hot_state = np.zeros(21, dtype=int)
         i = 0
         for x in range(self.x):
             for y in range(self.y):
                 if self.plateau[x, y] is None:
                     one_hot_state[i] = 0
-                    i += 1
-                    one_hot_state[i] = 0
-                    i += 1
-                    one_hot_state[i] = 0
-                    i += 1
-                    one_hot_state[i] = 0
-                    i += 1
-                    one_hot_state[i] = 0
-                    i += 1
                 else:
-                    one_hot_state[i] = 1
-                    i += 1
                     piece = self.plateau[x, y]
                     type_piece = piece.get_type()
-                    if type_piece == 0:
-                        one_hot_state[i] = 1
-                        i += 1
-                    else:
-                        one_hot_state[i] = 0
-                        i += 1
-                    if type_piece == 1:
-                        one_hot_state[i] = 1
-                        i += 1
-                    else:
-                        one_hot_state[i] = 0
-                        i += 1
-                    if type_piece == 2:
-                        one_hot_state[i] = 1
-                        i += 1
-                    else:
-                        one_hot_state[i] = 0
-                        i += 1
                     color = piece.get_color()
-                    one_hot_state[i] = color
-                    i += 1
+                    if color == 0:
+                        if type_piece == 0:
+                                one_hot_state[i] = 1
+                        if type_piece == 1:
+                            one_hot_state[i] = 2
+                        if type_piece == 2:
+                            one_hot_state[i] = 3
+                    else:
+                        if type_piece == 0:
+                                one_hot_state[i] = 4
+                        if type_piece == 1:
+                            one_hot_state[i] = 5
+                        if type_piece == 2:
+                            one_hot_state[i] = 6
+                i += 1
         for player in self.players:
             one_hot_state[i] = player.get_nbPieceRestante()
             i += 1
@@ -147,10 +133,12 @@ class Bond:
             i += 1
         one_hot_state[i] = self.get_turn()
 
-        return torch.tensor(one_hot_state, dtype=torch.float32)
+        vector = torch.tensor(one_hot_state, dtype=torch.float32)
+        self.state = sum((i + 1) * val.item() for i, val in enumerate(vector))
 
+        return vector
     def get_one_hot_size(self):
-        return 85
+        return 21
 
     def num_actions(self):
         return len(self.all_actions)
@@ -229,7 +217,6 @@ class Bond:
             #print("to ", row, col)
             self.placer_pion(row,col,p.Piece(row,col,self.get_turn(),piece_type))
             self.update_board(row,col)
-        self.one_hot_state_desc()
 
     def get_direction(self,index,row,col):
         new_x, new_y = row, col
@@ -260,6 +247,7 @@ class Bond:
         self.update_available_actions()
         self.lst_plateau.append(copy.deepcopy(self.plateau.copy()))
         self.curr_plateau += 1
+        self.one_hot_state_desc()
 
     def get_coordonnees_by_vector(self,moves,nb_case):
         row = nb_case // self.x
@@ -423,7 +411,7 @@ class Bond:
         self.reset()
         while not self.is_game_over():
             if self.get_turn()==0:
-                s = torch.tensor(self.one_hot_state_desc(), dtype=torch.float32)
+                s = self.state_id
                 q_values = policy_network(s).detach().numpy()
                 a = np.argmax(q_values)
                 print(a)
@@ -449,9 +437,9 @@ class Bond:
         return copy.deepcopy(self)
 
     def play_with_utc(self):
-        return utc(self,100)
+        return utc(self,200,math.sqrt(2))
 
-    def play(self):
+    def play_utc(self):
         total_reward = 0
         steps = 0
         self.reset()
@@ -476,3 +464,7 @@ class Bond:
         print(self.winners)
         print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
         return total_reward
+
+
+    def state_id(self):
+        return self.state

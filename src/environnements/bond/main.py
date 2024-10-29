@@ -1,3 +1,5 @@
+import math
+
 import pygame
 import sys
 from config.bond_config import WINDOW_WIDTH, WINDOW_HEIGHT
@@ -107,7 +109,7 @@ def main():
                 #bond.step(action)
 
                 #utc
-                a = utc(bond,100)
+                a = utc(bond,200,math.sqrt(2))
                 bond.step(a)
             for event in pygame.event.get():
 
@@ -182,7 +184,7 @@ def main():
 
 def utc_against_random():
     bond = Bond()
-    bond.play()
+    bond.play_utc()
 if __name__ == "__main__":
-    main()
-    #utc_against_random()
+    #main()
+    utc_against_random()

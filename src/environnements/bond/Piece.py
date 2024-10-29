@@ -29,7 +29,7 @@ class Piece:
         return self.img
 
     def get_color(self):
-        return self.color
+        return self.color % 2
 
     # Setters
     def set_pos_x(self, x):
