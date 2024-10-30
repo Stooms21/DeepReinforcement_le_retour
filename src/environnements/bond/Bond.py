@@ -17,7 +17,7 @@ class Bond:
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
-        self.aa = np.zeros(144).astype(int)
+        self.aa =  np.arange(16)
         self.all_actions = np.zeros(144).astype(int)
         self.winners = []
         self.lst_plateau = []
@@ -134,7 +134,7 @@ class Bond:
         one_hot_state[i] = self.get_turn()
 
         vector = torch.tensor(one_hot_state, dtype=torch.float32)
-        self.state = sum((i + 1) * val.item() for i, val in enumerate(vector))
+        self.compute_unique_state_id(one_hot_state)
 
         return vector
     def get_one_hot_size(self):
@@ -278,13 +278,15 @@ class Bond:
         self.piece_to_delete = []
         self.players = [Player(0), Player(1)]
         self.move_state = 0  # no color p1 0,no color p2 1 highlighted in yellow p1 2, highlighted in yellow p2 3
-        self.aa = np.zeros(144).astype(int)
+        self.aa =  np.arange(16)
         self.all_actions = np.zeros(144).astype(int)
         self.winners = []
         self.lst_plateau = []
-        self.lst_plateau.append(self.plateau.copy())
+        self.lst_plateau.append(np.full((self.y, self.x), None))
         self.curr_plateau = 0
         self.curr_score = [(0,0)]
+        self.state = 0
+        self.one_hot_state_desc()
 
     def is_game_over(self):
         game_over = False
@@ -437,7 +439,7 @@ class Bond:
         return copy.deepcopy(self)
 
     def play_with_utc(self):
-        return utc(self,200,math.sqrt(2))
+        return utc(self,100,math.sqrt(2))
 
     def play_utc(self):
         total_reward = 0
@@ -465,6 +467,30 @@ class Bond:
         print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
         return total_reward
 
+    def compute_unique_state_id(self,state):
+        base = 7  # Car chaque case peut avoir 7 valeurs différentes (0-6)
+        result = 0
+
+        # Mapper les 16 cases de la grille
+        for i in range(16):
+            result = result * base + state[i]
+
+        # Mapper les pièces sorties du joueur 1 (0-10)
+        result = result * 11 + state[16]
+
+        # Mapper les pièces du joueur 1 (0-13)
+        result = result * 14 + state[17]
+
+        # Mapper les pièces sorties du joueur 2 (0-10)
+        result = result * 11 + state[18]
+
+        # Mapper les pièces du joueur 2 (0-13)
+        result = result * 14 + state[19]
+
+        # Mapper le tour (0-1)
+        result = result * 2 + state[20]
+
+        self.state = result
 
     def state_id(self):
         return self.state

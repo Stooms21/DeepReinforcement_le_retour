@@ -186,5 +186,5 @@ def utc_against_random():
     bond = Bond()
     bond.play_utc()
 if __name__ == "__main__":
-    #main()
-    utc_against_random()
+    main()
+    #utc_against_random()
