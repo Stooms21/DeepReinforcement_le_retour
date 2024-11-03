@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import torch
 
@@ -69,6 +71,14 @@ class GridWorld:
         state_desc = [0] * (self.size * self.size)
         state_desc[self.player_position] = 1
         return torch.tensor(state_desc, dtype=torch.float32)
+
+    def state_id(self):
+        return self.player_position
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+
 
     def get_one_hot_size(self):
         return self.one_hot_state_desc().numel()

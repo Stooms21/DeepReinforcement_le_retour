@@ -95,7 +95,7 @@ class Bond:
         self.move_state = self.move_state % 2
 
     def available_actions(self):
-        return self.all_actions
+        return self.aa
 
     def available_actions_ids(self):
         return self.aa
@@ -195,7 +195,7 @@ class Bond:
         moves = move[debut + 16 :fin + 16]
         return self.get_coordonnees_by_vector(moves,nb_case)
 
-    def step(self,action):
+    def step(self,action,training=True):
         if action<=15 :
             row = action // self.x
             col = action % self.y
@@ -210,11 +210,13 @@ class Bond:
             col = nb_cases % self.y
             piece_type = self.plateau[row,col].get_type()
             self.set_case(None,row,col)
-            #print("Joueur ",self.get_turn())
-            #print("Move from ",row,col)
+            if not training:
+                print("Joueur ",self.get_turn())
+                print("Move from ",row,col)
             move = action % 8
             row,col = self.get_direction(move,row,col)
-            #print("to ", row, col)
+            if not training:
+                print("to ", row, col)
             self.placer_pion(row,col,p.Piece(row,col,self.get_turn(),piece_type))
             self.update_board(row,col)
 
@@ -242,8 +244,8 @@ class Bond:
     def update_board(self,x,y):
         self.get_curr_player().set_nbPieceRestante()
         self.check_piece_to_develop(x, y)
-        self.set_turn()
         self.check_piece_to_scored()
+        self.set_turn()
         self.update_available_actions()
         self.lst_plateau.append(copy.deepcopy(self.plateau.copy()))
         self.curr_plateau += 1

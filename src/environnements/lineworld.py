@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import torch
 
@@ -61,6 +63,12 @@ class LineWorld:
 
     def get_one_hot_size(self):
         return self.one_hot_state_desc().numel()
+
+    def state_id(self):
+        return self.player_position
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     def play(self, policy_network):
         # Réinitialisation de l'environnement

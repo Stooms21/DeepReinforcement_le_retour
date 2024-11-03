@@ -97,7 +97,7 @@ def main():
                         print(trye)
                         trye+=1
                         bond.reset()
-            elif solo and bond.get_turn() == 1:
+            elif solo and bond.get_turn() == 0:
                 #s = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32)
                 #q_values = policy_network(s).detach().numpy()
                 #a = np.argmax(q_values)
@@ -109,8 +109,8 @@ def main():
                 #bond.step(action)
 
                 #utc
-                a = utc(bond,200,math.sqrt(2))
-                bond.step(a)
+                a = utc(bond,1000,math.sqrt(2))
+                bond.step(a,False)
             for event in pygame.event.get():
 
 
