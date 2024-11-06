@@ -202,6 +202,7 @@ class Bond:
             #print("Joueur ",self.get_turn())
             #print("Move to ",row,col)
             self.placer_pion(row,col,p.Piece(row,col,self.get_turn()))
+            self.get_curr_player().set_nbPieceRestante()
             self.update_board(row,col)
         else:
             action -= 16
@@ -242,7 +243,6 @@ class Bond:
         return new_x, new_y
 
     def update_board(self,x,y):
-        self.get_curr_player().set_nbPieceRestante()
         self.check_piece_to_develop(x, y)
         self.check_piece_to_scored()
         self.set_turn()
@@ -292,36 +292,27 @@ class Bond:
 
     def is_game_over(self):
         game_over = False
-        for player in self.players:
-            if player.get_nbPieceSortis() >= 10:
-                #print("gagné par pièce sortis")
-                self.add_winner(player.get_color())
-                game_over = True
-            elif player.get_nbPieceRestante() == 0:
-                #print("perdu par manque de pièce")
-                self.add_winner((player.get_color() + 1) %2)
-                game_over = True
 
         curr_player = self.get_curr_player()
         if self.aa.size == 0:
-            if curr_player not in self.winners:
-                #print("perdu par manque de coup")
-                self.add_winner(curr_player.get_color())
+            self.add_winner((curr_player.get_color() + 1) % 2)
+            game_over = True
+
+        for player in self.players:
+            if player.get_nbPieceSortis() >= 10:
+                self.add_winner(player.get_color())
                 game_over = True
 
         #if len(self.winners) == 2:
             #print("c'est égalité")
 
-        return game_over or self.aa.size == 0
+        return game_over
 
     def score(self):
-        if self.is_game_over():
-            if 0 in self.winners:
-                if len(self.winners) == 2:
-                    return 0.5
-                return 1
-            else:
-                return 0
+        if 0 in self.winners and 1 in self.winners:
+            return 0.5
+        if 0 in self.winners:
+            return 1
         else:
             return 0
 
@@ -410,7 +401,6 @@ class Bond:
                             self.piece_to_delete.append(element)
 
     def play(self,policy_network):
-        total_reward = 0
         steps = 0
         self.reset()
         while not self.is_game_over():
@@ -420,8 +410,6 @@ class Bond:
                 a = np.argmax(q_values)
                 print(a)
                 self.step(a)
-                reward = self.score()
-                total_reward += reward
             else:
                 available_actions = self.available_actions_ids()
                 action = random.choice(available_actions)
@@ -434,8 +422,9 @@ class Bond:
             print(",il lui reste ", p.get_nbPieceRestante())
             print("et il a réussi à sortir ", p.get_nbPieceSortis())
         print(self.winners)
-        print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
-        return total_reward
+        reward = self.score()
+        print(f"Partie terminée en {steps} étapes avec une récompense totale de {reward}.")
+        return reward
 
     def copy(self):
         return copy.deepcopy(self)
@@ -444,15 +433,12 @@ class Bond:
         return utc(self,100,math.sqrt(2))
 
     def play_utc(self):
-        total_reward = 0
         steps = 0
         self.reset()
         while not self.is_game_over():
             if self.get_turn()==0:
                 a = self.play_with_utc()
                 self.step(a)
-                reward = self.score()
-                total_reward += reward
             else:
                 available_actions = self.available_actions_ids()
                 action = random.choice(available_actions)
@@ -465,9 +451,10 @@ class Bond:
             print(",il lui reste ", p.get_nbPieceRestante())
             print("et il a réussi à sortir ", p.get_nbPieceSortis())
 
+        reward = self.score()
         print(self.winners)
-        print(f"Partie terminée en {steps} étapes avec une récompense totale de {total_reward}.")
-        return total_reward
+        print(f"Partie terminée en {steps} étapes avec une récompense totale de {reward}.")
+        return reward
 
     def compute_unique_state_id(self,state):
         base = 7  # Car chaque case peut avoir 7 valeurs différentes (0-6)

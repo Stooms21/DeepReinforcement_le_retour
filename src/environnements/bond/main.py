@@ -90,9 +90,8 @@ def main():
                     action = random.choice(aa)
                     bond.step(action)
                     if bond.is_game_over():
-                        for player in bond.get_players():
-                            if player.get_nbPieceSortis() >= 10:
-                                end = True
+                        if bond.score() > 0:
+                            end = True
                     if not end and bond.is_game_over():
                         print(trye)
                         trye+=1
@@ -174,17 +173,13 @@ def main():
         pygame.time.Clock().tick(60)
         pygame.display.flip()
 
-    winners = bond.get_winners()
-    if len(winners) == 2:
-        print("C'est égalité !")
-    elif 0 in winners:
-        print("Joueur blanc a gagné !")
-    elif 1 in winners:
-        print("Joueur noir a gagné !")
 
 def utc_against_random():
     bond = Bond()
-    bond.play_utc()
+    return bond.play_utc()
 if __name__ == "__main__":
     main()
-    #utc_against_random()
+    score = 0
+    for i in range(10):
+        score += utc_against_random()
+    print(score)
