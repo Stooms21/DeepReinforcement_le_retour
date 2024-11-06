@@ -6,37 +6,33 @@ def utc(env,nb_action_play,c):
     tree = {}
     root = env.state_id()
     state_id = env.state_id()
-    for a in env.available_actions():
-        if state_id not in tree:
-            tree[state_id] = {}
-            edge_a = (0, 0)
-            tree[state_id][a] = edge_a
-        else:
-            node = tree[state_id]
-            if a not in node:
-                edge_a = (0, 0)
-                tree[state_id][a] = edge_a
+    tree = update_tree(env,tree,root)
 
     for nb_move in tqdm.tqdm(range(nb_action_play)):
         #selection
         root_node = tree[root]
-        action_select = select_action(root_node,c,nb_move)
+        action_select = 0
+        action_select = select_action(root_node, c)
         env_copy = env.copy()
         env_copy.step(action_select)
-        #expansion
-        # current_node = root_node
-        # while state_id in tree:
-        #     action_select = select_action(current_node, c)
-        #     env_copy.step(action_select)
-        #     state_id = env_copy.state_id()
-
+        state_id = env_copy.state_id()
+        current_node = root_node
+        all_action = [action_select]
+        while state_id in tree:
+            action_select = select_action(current_node, c)
+            env_copy.step(action_select)
+            state_id = env_copy.state_id()
+            current_node = tree[state_id]
+            all_action.append(action_select)
+        # expansion
+        update_tree(env,tree,current_node)
         #simulation
         score_final = rollout(env_copy)
         #backpropagation
         for action,triplet in root_node.items():
             score = triplet[0]
             nb_visited = triplet[1]
-            if action == action_select:
+            if action in all_action:
                 score += score_final
                 nb_visited += 1
             nouveau_triplet = (score , nb_visited)
@@ -57,7 +53,7 @@ def utc(env,nb_action_play,c):
     return best_a
 
 
-def select_action(node,c,nb_action_play):
+def select_action(node,c):
     choose = False
     action_select = 0
     best_ucb = -1000
@@ -82,6 +78,19 @@ def select_action(node,c,nb_action_play):
             best_ucb = ucb
             action_select = action
     return action_select
+
+def update_tree(env,tree,state_id):
+    for a in env.available_actions():
+        if state_id not in tree:
+            tree[state_id] = {}
+            edge_a = (0, 0)
+            tree[state_id][a] = edge_a
+        else:
+            node = tree[state_id]
+            if a not in node:
+                edge_a = (0, 0)
+                tree[state_id][a] = edge_a
+    return tree
 
 def rollout(env_copy):
     while not env_copy.is_game_over():
