@@ -7,40 +7,52 @@ def utc(env,nb_action_play,c):
     root = env.state_id()
     state_id = env.state_id()
     tree = update_tree(env,tree,root)
-
+    i =0
     for nb_move in tqdm.tqdm(range(nb_action_play)):
         #selection
         root_node = tree[root]
-        action_select = 0
         action_select = select_action(root_node, c)
         env_copy = env.copy()
         env_copy.step(action_select)
         state_id = env_copy.state_id()
-        current_node = root_node
         all_action = [action_select]
-        while state_id in tree:
+        state = [state_id]
+        chose_random = False
+        while state_id in tree and not env_copy.is_game_over():
+            current_node = tree[state_id]
             action_select = select_action(current_node, c)
             env_copy.step(action_select)
             state_id = env_copy.state_id()
-            current_node = tree[state_id]
             all_action.append(action_select)
+            if not state_id in state:
+                state.append(state_id)
+            else:
+                current_node = tree[state_id]
+                action_select = select_action(current_node, c)
+                env_copy.step(action_select)
+                aa = env_copy.available_actions()
+                action_select = random.choice(aa)
+                env_copy.step(action_select)
+                state_id = env_copy.state_id()
+                i += 1
         # expansion
-        update_tree(env,tree,current_node)
+        update_tree(env_copy,tree,state_id)
         #simulation
         score_final = rollout(env_copy)
         #backpropagation
-        for action,triplet in root_node.items():
-            score = triplet[0]
-            nb_visited = triplet[1]
-            if action in all_action:
-                score += score_final
-                nb_visited += 1
-            nouveau_triplet = (score , nb_visited)
-            root_node[action] = nouveau_triplet
+        for state,node in tree.items():
+            for action,triplet in node.items():
+                if action in all_action:
+                    score = triplet[0]
+                    nb_visited = triplet[1]
+                    score += score_final
+                    nb_visited += 1
+                    nouveau_triplet = (score , nb_visited)
+                    tree[state][action] = nouveau_triplet
 
     max_nb_select = 0
     best_a = 0
-    print(tree)
+    print(i)
     root_node = tree[root]
     max_score = -1000
     for action, triplet in root_node.items():
@@ -49,7 +61,7 @@ def utc(env,nb_action_play,c):
         if score > max_score:
             max_score = score
             best_a = action
-    print(best_a)
+    #print(best_a)
     return best_a
 
 

@@ -430,7 +430,7 @@ class Bond:
         return copy.deepcopy(self)
 
     def play_with_utc(self):
-        return utc(self,100,math.sqrt(2))
+        return utc(self,500,math.sqrt(2))
 
     def play_utc(self):
         steps = 0

@@ -5,7 +5,7 @@ from config.algos_config import CONFIG_FILE, DDQN_HIDDEN_LAYER_SIZE, ENV_MODULE_
 from src.utils import utils as ut
 import src.utils.dqn_utils as dqu
 
-env_name = "GridWorld"
+env_name = "LineWorld"
 # Charger la configuration de l'environnement
 config = ut.load_config("../" + CONFIG_FILE, env_name)
 # Obtenir le module de l'environnement
@@ -16,7 +16,7 @@ env_class = getattr(env_module, env_name)
 env = env_class(config)
 
 while(not env.is_game_over()):
-    a = utc(env,1000,m.sqrt(2))
+    a = utc(env,1200,m.sqrt(2))
     env.step(a)
     env.display()
 

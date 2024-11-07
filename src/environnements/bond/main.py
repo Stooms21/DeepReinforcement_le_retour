@@ -2,6 +2,9 @@ import math
 
 import pygame
 import sys
+
+import tqdm
+
 from config.bond_config import WINDOW_WIDTH, WINDOW_HEIGHT
 from game_ui import GameUI
 from Bond import Bond
@@ -108,7 +111,7 @@ def main():
                 #bond.step(action)
 
                 #utc
-                a = utc(bond,1000,math.sqrt(2))
+                a = utc(bond,1200,math.sqrt(2))
                 bond.step(a,False)
             for event in pygame.event.get():
 
@@ -178,7 +181,7 @@ def utc_against_random():
     bond = Bond()
     return bond.play_utc()
 if __name__ == "__main__":
-    main()
+    #main()
     score = 0
     for i in range(10):
         score += utc_against_random()
