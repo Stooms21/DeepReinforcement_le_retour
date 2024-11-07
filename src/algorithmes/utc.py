@@ -34,6 +34,7 @@ def utc(env,nb_action_play,c):
                 action_select = random.choice(aa)
                 env_copy.step(action_select)
                 state_id = env_copy.state_id()
+                all_action.append(action_select)
                 i += 1
         # expansion
         update_tree(env_copy,tree,state_id)

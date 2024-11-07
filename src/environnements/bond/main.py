@@ -181,7 +181,7 @@ def utc_against_random():
     bond = Bond()
     return bond.play_utc()
 if __name__ == "__main__":
-    #main()
+    main()
     score = 0
     for i in range(10):
         score += utc_against_random()
