@@ -1,6 +1,8 @@
 import math
 
 import torch
+
+from src.algorithmes.random_rollout import random_rollout
 from src.environnements.bond.Player import Player
 from config.bond_config import ROWS, COLS
 import src.environnements.bond.Piece as p
@@ -8,6 +10,7 @@ import numpy as np
 import random
 import copy
 from src.algorithmes.utc import utc
+from src.algorithmes.random_rollout import random_rollout
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
@@ -431,13 +434,19 @@ class Bond:
 
     def play_with_utc(self):
         return utc(self,500,math.sqrt(2))
+    def play_with_random_rollout(self):
+        return random_rollout(self,500)
 
-    def play_utc(self):
+    def play_with_algo(self,algo_type):
         steps = 0
         self.reset()
         while not self.is_game_over():
             if self.get_turn()==0:
-                a = self.play_with_utc()
+                a = 0
+                if algo_type == 0:
+                    a = self.play_with_random_rollout()
+                if algo_type == 1:
+                    a = self.play_with_utc()
                 self.step(a)
             else:
                 available_actions = self.available_actions_ids()

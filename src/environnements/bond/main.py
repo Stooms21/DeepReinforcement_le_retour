@@ -176,13 +176,15 @@ def main():
         pygame.time.Clock().tick(60)
         pygame.display.flip()
 
-
 def utc_against_random():
     bond = Bond()
-    return bond.play_utc()
+    return bond.play_with_algo(1)
+
+def random_rollout_against_random():
+    bond = Bond()
+    return bond.play_with_algo(0)
+
 if __name__ == "__main__":
-    main()
-    score = 0
-    for i in range(10):
-        score += utc_against_random()
-    print(score)
+    #main()
+    utc_against_random()
+    random_rollout_against_random()

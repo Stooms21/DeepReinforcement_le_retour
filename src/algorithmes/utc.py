@@ -5,7 +5,6 @@ import tqdm
 def utc(env,nb_action_play,c):
     tree = {}
     root = env.state_id()
-    state_id = env.state_id()
     tree = update_tree(env,tree,root)
     i =0
     for nb_move in tqdm.tqdm(range(nb_action_play)):
