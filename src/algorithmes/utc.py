@@ -2,7 +2,7 @@ import random
 import math as m
 import tqdm
 
-def utc(env,nb_action_play,c):
+def utc(env,nb_action_play,c,color = 1):
     tree = {}
     root = env.state_id()
     tree = update_tree(env,tree,root)
@@ -38,7 +38,7 @@ def utc(env,nb_action_play,c):
         # expansion
         update_tree(env_copy,tree,state_id)
         #simulation
-        score_final = rollout(env_copy)
+        score_final = rollout(env_copy,color)
         #backpropagation
         for state,node in tree.items():
             for action,triplet in node.items():
@@ -54,14 +54,13 @@ def utc(env,nb_action_play,c):
     best_a = 0
     print(i)
     root_node = tree[root]
-    max_score = -1000
+    print(root_node)
     for action, triplet in root_node.items():
-        score = triplet[0]
         nb_select = triplet[1]
-        if score > max_score:
-            max_score = score
+        if nb_select > max_nb_select:
+            max_nb_select = nb_select
             best_a = action
-    #print(best_a)
+    print(best_a)
     return best_a
 
 
@@ -104,9 +103,9 @@ def update_tree(env,tree,state_id):
                 tree[state_id][a] = edge_a
     return tree
 
-def rollout(env_copy):
+def rollout(env_copy,color):
     while not env_copy.is_game_over():
         random_a = random.choice(env_copy.available_actions())
         env_copy.step(random_a)
-    score = env_copy.score()
+    score = (env_copy.score() * color)
     return score

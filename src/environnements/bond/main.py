@@ -13,6 +13,7 @@ import random
 import torch
 import numpy as np
 from src.algorithmes.utc import utc
+from src.algorithmes.random_rollout import random_rollout
 
 def main():
     env = Bond()
@@ -99,7 +100,7 @@ def main():
                         print(trye)
                         trye+=1
                         bond.reset()
-            elif solo and bond.get_turn() == 0:
+            elif solo and bond.get_turn() == 1:
                 #s = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32)
                 #q_values = policy_network(s).detach().numpy()
                 #a = np.argmax(q_values)
@@ -111,7 +112,7 @@ def main():
                 #bond.step(action)
 
                 #utc
-                a = utc(bond,1200,math.sqrt(2))
+                a = utc(bond,800,2,-1)
                 bond.step(a,False)
             for event in pygame.event.get():
 
@@ -176,15 +177,27 @@ def main():
         pygame.time.Clock().tick(60)
         pygame.display.flip()
 
-def utc_against_random():
-    bond = Bond()
-    return bond.play_with_algo(1)
-
-def random_rollout_against_random():
-    bond = Bond()
-    return bond.play_with_algo(0)
-
 if __name__ == "__main__":
-    #main()
-    utc_against_random()
-    random_rollout_against_random()
+    main()
+    # bond = Bond()
+    # while not bond.is_game_over():
+    #     if bond.get_turn() == 1:
+    #         a = random_rollout(bond,10,-1)
+    #         bond.step(a)
+    #     else:
+    #         aa = bond.available_actions_ids()
+    #         action = random.choice(aa)
+    #         bond.step(action)
+    # print(bond.score())
+    # print(bond.get_winners())
+    # bond = Bond()
+    # while not bond.is_game_over():
+    #     if bond.get_turn() == 1:
+    #         a = utc(bond,300,math.sqrt(2),-1)
+    #         bond.step(a)
+    #     else:
+    #         aa = bond.available_actions_ids()
+    #         action = random.choice(aa)
+    #         bond.step(action)
+    # print(bond.score())
+    # print(bond.get_winners())

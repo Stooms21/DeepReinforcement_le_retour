@@ -6,7 +6,7 @@ import tqdm
 from config.algos_config import CONFIG_FILE, DDQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 from src.utils import utils as ut
 
-def random_rollout(env,num_rollouts_per_action):
+def random_rollout(env,num_rollouts_per_action,color = 1):
 
     best_a = 0
 
@@ -21,7 +21,7 @@ def random_rollout(env,num_rollouts_per_action):
                 action = random.choice(aa)
                 env_copy.step(action)
 
-            q_s_a += env_copy.score()
+            q_s_a += (env_copy.score() * color)
 
         q_s_a /= num_rollouts_per_action
 
@@ -46,3 +46,6 @@ if __name__ == '__main__':
         a = random_rollout(env,1000)
         env.step(a)
         env.display()
+
+
+

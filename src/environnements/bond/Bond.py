@@ -9,8 +9,7 @@ import src.environnements.bond.Piece as p
 import numpy as np
 import random
 import copy
-from src.algorithmes.utc import utc
-from src.algorithmes.random_rollout import random_rollout
+import uuid
 
 class Bond:
     def __init__(self, x=ROWS, y=COLS):  # Use ROWS and COLS from bond_config
@@ -28,7 +27,7 @@ class Bond:
         self.curr_plateau = 0
         self.curr_score = [(0,0)]
         self.state = 0
-        self.one_hot_state_desc()
+
     def get_x(self):
         return self.x
 
@@ -313,11 +312,11 @@ class Bond:
 
     def score(self):
         if 0 in self.winners and 1 in self.winners:
-            return 0.5
+            return 0
         if 0 in self.winners:
             return 1
-        else:
-            return 0
+        elif 1 in self.winners:
+            return -1
 
     def get_curr_player(self):
         return self.players[self.get_turn()]
@@ -432,63 +431,13 @@ class Bond:
     def copy(self):
         return copy.deepcopy(self)
 
-    def play_with_utc(self):
-        return utc(self,500,math.sqrt(2))
-    def play_with_random_rollout(self):
-        return random_rollout(self,500)
-
-    def play_with_algo(self,algo_type):
-        steps = 0
-        self.reset()
-        while not self.is_game_over():
-            if self.get_turn()==0:
-                a = 0
-                if algo_type == 0:
-                    a = self.play_with_random_rollout()
-                if algo_type == 1:
-                    a = self.play_with_utc()
-                self.step(a)
-            else:
-                available_actions = self.available_actions_ids()
-                action = random.choice(available_actions)
-                self.step(action)
-
-            steps += 1
-
-        for p in self.players:
-            print("Toueur du joueur", p.get_color())
-            print(",il lui reste ", p.get_nbPieceRestante())
-            print("et il a réussi à sortir ", p.get_nbPieceSortis())
-
-        reward = self.score()
-        print(self.winners)
-        print(f"Partie terminée en {steps} étapes avec une récompense totale de {reward}.")
-        return reward
-
     def compute_unique_state_id(self,state):
-        base = 7  # Car chaque case peut avoir 7 valeurs différentes (0-6)
-        result = 0
+        # Convertir l'état en une chaîne unique
+        state_str = ''.join(map(str, state))  # Exemple: [0,1,2,...] → "012..."
 
-        # Mapper les 16 cases de la grille
-        for i in range(16):
-            result = result * base + state[i]
+        # Générer un identifiant unique (UUID version 5, basé sur l'état)
+        self.state = str(uuid.uuid5(uuid.NAMESPACE_DNS, state_str))
 
-        # Mapper les pièces sorties du joueur 1 (0-10)
-        result = result * 11 + state[16]
-
-        # Mapper les pièces du joueur 1 (0-13)
-        result = result * 14 + state[17]
-
-        # Mapper les pièces sorties du joueur 2 (0-10)
-        result = result * 11 + state[18]
-
-        # Mapper les pièces du joueur 2 (0-13)
-        result = result * 14 + state[19]
-
-        # Mapper le tour (0-1)
-        result = result * 2 + state[20]
-
-        self.state = result
 
     def state_id(self):
         return self.state
