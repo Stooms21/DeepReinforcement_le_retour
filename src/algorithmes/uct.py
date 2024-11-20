@@ -1,14 +1,16 @@
 import random
 import math as m
+import time
+
 from tqdm import tqdm  # Pour afficher une barre de progression
 
 
-def uct(env, nb_action_play, c, color=1):
+def uct(env, duration, c, color=1):
     tree = {}
     root = env.state_id()  # Identifier l'état racine
     tree = update_tree(env, tree, root)
-
-    for _ in tqdm(range(nb_action_play)):
+    start_time = time.time()
+    while duration > time.time() - start_time:
         # Copie initiale de l'environnement
         env_copy = env.copy()
 
