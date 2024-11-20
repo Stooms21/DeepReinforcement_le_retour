@@ -1,19 +1,21 @@
 import random
 import math as m
+import time
 
 import tqdm
 
 from config.algos_config import CONFIG_FILE, DDQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 from src.utils import utils as ut
 
-def random_rollout(env,num_rollouts_per_action,color = 1):
+def random_rollout(env,duration,color = 1):
 
     best_a = 0
-
+    start_time = time.time()
     best_q_s_z = -1000
+    num_rollouts_per_action = 60
     for a in env.available_actions():
         q_s_a = 0.0
-        for i in tqdm.tqdm(range(num_rollouts_per_action)):
+        for i in range(num_rollouts_per_action):
             env_copy = env.copy()
             env_copy.step(a)
             while not env_copy.is_game_over():
@@ -28,8 +30,8 @@ def random_rollout(env,num_rollouts_per_action,color = 1):
         if q_s_a > best_q_s_z:
             best_q_s_z = q_s_a
             best_a = a
-
-
+        if duration < time.time() - start_time:
+            return best_a
     return best_a
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ from Piece import Piece
 import random
 import torch
 import numpy as np
-from src.algorithmes.utc import utc
+from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
 
 def main():
@@ -112,7 +112,7 @@ def main():
                 #bond.step(action)
 
                 #utc
-                a = utc(bond,800,2,-1)
+                a = uct(bond,800,6,-1)
                 bond.step(a,False)
             for event in pygame.event.get():
 
@@ -178,26 +178,15 @@ def main():
         pygame.display.flip()
 
 if __name__ == "__main__":
-    main()
-    # bond = Bond()
-    # while not bond.is_game_over():
-    #     if bond.get_turn() == 1:
-    #         a = random_rollout(bond,10,-1)
-    #         bond.step(a)
-    #     else:
-    #         aa = bond.available_actions_ids()
-    #         action = random.choice(aa)
-    #         bond.step(action)
-    # print(bond.score())
-    # print(bond.get_winners())
-    # bond = Bond()
-    # while not bond.is_game_over():
-    #     if bond.get_turn() == 1:
-    #         a = utc(bond,300,math.sqrt(2),-1)
-    #         bond.step(a)
-    #     else:
-    #         aa = bond.available_actions_ids()
-    #         action = random.choice(aa)
-    #         bond.step(action)
-    # print(bond.score())
-    # print(bond.get_winners())
+    #main()    #
+    bond = Bond()
+    while not bond.is_game_over():
+        if bond.get_turn() == 1:
+            a = uct(bond,10,math.sqrt(2),-1)
+            bond.step(a)
+        else:
+            aa = bond.available_actions_ids()
+            action = random.choice(aa)
+            bond.step(action)
+    print(bond.score())
+    print(bond.get_winners())

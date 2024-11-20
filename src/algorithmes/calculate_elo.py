@@ -3,8 +3,10 @@ import random
 
 import numpy as np
 import matplotlib.pyplot as plt
+import tqdm
+
 from src.environnements.bond.Bond import Bond
-from src.algorithmes.utc import utc
+from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
 
 def simulate_game(algo_a, algo_b):
@@ -24,9 +26,9 @@ def play_by_algo(bond,curr_algo,color):
         aa = bond.available_actions_ids()
         return random.choice(aa)
     elif curr_algo == "Random Rollout":
-        return random_rollout(bond, 25, color)
-    elif curr_algo == "UTC":
-        return utc(bond, 800, 2, color)
+        return random_rollout(bond, 5, color)
+    elif curr_algo == "UCT":
+        return uct(bond, 10, 5, color)
     return 0
 
 # Fonction pour calculer les probabilités d'Elo
@@ -62,7 +64,7 @@ def simulate_tournament(algorithms, num_matches=3, k=32):
     # Matrice des résultats (gains de chaque algorithme contre les autres)
     results_matrix = np.zeros((num_algorithms, num_algorithms), dtype=int)
 
-    for _ in range(num_matches):
+    for i in range(num_matches):
         # Sélectionner deux algorithmes aléatoirement
         algo_a_idx, algo_b_idx = np.random.choice(range(num_algorithms), size=2, replace=False)
         algo_a, algo_b = algorithms[algo_a_idx], algorithms[algo_b_idx]
@@ -84,7 +86,6 @@ def simulate_tournament(algorithms, num_matches=3, k=32):
         # Ajouter à l'historique
         for algo in algorithms:
             history[algo].append(elo_scores[algo])
-
     return elo_scores, history, results_matrix
 
 # Fonction pour afficher la matrice des résultats
@@ -112,11 +113,11 @@ def plot_elo_history(history):
     plt.show()
 
 # Exemple d'algorithmes
-algorithms = ["Random", "Random Rollout","UTC"]
+algorithms = ["Random Rollout","UCT"]
 
 
 # Simulation
-final_scores, elo_history, results_matrix = simulate_tournament(algorithms, num_matches=200, k=32)
+final_scores, elo_history, results_matrix = simulate_tournament(algorithms, num_matches=100, k=32)
 
 # Résultats finaux
 print("Scores Elo finaux:")

@@ -1,4 +1,4 @@
-from src.algorithmes.utc import utc
+from src.algorithmes.uct import utc
 from src.environnements.gridworld import GridWorld
 import math as m
 from config.algos_config import CONFIG_FILE, DDQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING

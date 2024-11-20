@@ -5,7 +5,7 @@ import src.environnements.bond.Piece as p
 import numpy as np
 import random
 import copy
-from src.algorithmes.utc import utc
+from src.algorithmes.uct import utc
 
 class Bond:
     def __init__(self,plateau = np.full((4,4), None)):
