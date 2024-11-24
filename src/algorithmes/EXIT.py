@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm  # Pour afficher une barre de progression
+from src.environnements.bond.Bond import Bond
 
 def MCTS(env,state,policy_network, nb_action, c):
     env.reset()
@@ -215,7 +216,7 @@ def expert_iteration(env, policy_network, num_iterations=10, games_per_iteration
         # Étape 2 : Planification avec MCTS (amélioration de l'expert)
         with tqdm(total=len(dataset), desc="MCTS", unit="step") as pbar_mcts:
             for i, (state, _) in enumerate(dataset):
-                mcts_policy = MCTS(state, policy_network,500,2)  # Appel à l'expert
+                mcts_policy = MCTS(env,state, policy_network,500,2)  # Appel à l'expert
                 dataset[i] = (state, mcts_policy)  # Mise à jour avec la politique améliorée
                 pbar_mcts.update(1)
 
@@ -268,13 +269,12 @@ def play_game_against_random(env, policy_network):
 
 
 if __name__ == "__main__":
-    policy_network = torch.load("policy_network.pth")
     # Initialisation
-    # bond = Bond()
-    # policy_network = PolicyNetwork(input_size=21, num_actions=bond.num_actions())  # Plateau 3x3 => 9 cases/actions
+    bond = Bond()
+    policy_network = PolicyNetwork(input_size=21, num_actions=bond.num_actions())  # Plateau 3x3 => 9 cases/actions
     #
-    # # Lancer l'algorithme EXIT
-    # #expert_iteration(bond, policy_network, num_iterations=3, games_per_iteration=10)
+    # Lancer l'algorithme EXIT
+    expert_iteration(bond, policy_network, num_iterations=1, games_per_iteration=1)
     # # Charger un modèle sauvegardé
     # model_path = "policy_network.pth"
     # load_model(policy_network, model_path)
