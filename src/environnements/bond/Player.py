@@ -30,3 +30,6 @@ class Player:
 
     def set_color(self, color):
         self.color = color
+
+    def set_nb_piece_restante(self, nb):
+        self.nbPieceRestante = nb

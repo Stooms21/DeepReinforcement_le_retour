@@ -138,7 +138,7 @@ class Bond:
         vector = torch.tensor(one_hot_state, dtype=torch.float32)
         self.compute_unique_state_id(one_hot_state)
 
-        return vector
+        return one_hot_state
     def get_one_hot_size(self):
         return 21
 
@@ -441,3 +441,32 @@ class Bond:
 
     def state_id(self):
         return self.state
+
+    def create_game_by_state(self,one_hot_vector):
+        i = 0
+        one_hot_vector = one_hot_vector.numpy().astype(int)[0]
+        # Reset le plateau
+        for x in range(self.x):
+            for y in range(self.y):
+                self.plateau[x, y] = None
+        # Reconstruire le plateau
+        for x in range(self.x):
+            for y in range(self.y):
+                value = one_hot_vector[i]
+                if value == 0:
+                    self.plateau[x, y] = None
+                elif 1 <= value <= 3:
+                    self.plateau[x, y] = p.Piece(x,y, 0,value - 1)
+                elif 4 <= value <= 6:
+                    self.plateau[x, y] = p.Piece(x,y,1 ,value - 4)
+                i += 1
+
+        # Reconstruire les joueurs
+        for player in self.players:
+            player.set_nb_piece_restante(one_hot_vector[i])
+            i += 1
+            player.set_nbPieceSortis(one_hot_vector[i])
+            i += 1
+        # Mettre à jour le tour
+        self.set_move_state(one_hot_vector[i])
+        self.update_available_actions()

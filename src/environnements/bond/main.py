@@ -14,7 +14,7 @@ import torch
 import numpy as np
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
-
+from src.algorithmes.EXIT import load_model,PolicyNetwork
 def main():
     env = Bond()
     #policy_network = deep_q_learning(env)
@@ -33,6 +33,22 @@ def main():
 
     # Initialiser le jeu
     bond = Bond()
+    policy_network = PolicyNetwork(input_size=21, num_actions=env.num_actions())
+    # Charger un modèle sauvegardé
+    model_path = "../../../src/algorithmes/policy_network.pth"
+    load_model(policy_network, model_path)
+    bond = Bond()
+
+    #bond2 = Bond()
+    #marche bien :D
+    # bond2.step(0)
+    # bond2.step(5)
+    # bond2.step(1)
+    # print(bond2.available_actions())
+    # bond2.step(57)
+    # bond2.step(17)
+    # state = torch.tensor(bond2.one_hot_state_desc().flatten(), dtype=torch.float32).unsqueeze(0)
+    # bond.create_game_by_state(state)
     game_ui = GameUI(window, bond)
 
     x = 0
@@ -112,8 +128,18 @@ def main():
                 #bond.step(action)
 
                 #utc
-                a = uct(bond,800,6,-1)
-                bond.step(a,False)
+                # a = uct(bond,5,3,-1)
+                # bond.step(a,False)
+
+                #EXIT
+                # Le réseau choisit une action
+                state = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32).unsqueeze(0)
+                legal_actions = bond.available_actions()
+
+                with torch.no_grad():
+                    action_probs = policy_network(state).numpy().flatten()
+                action = random.choices(legal_actions, weights=[action_probs[a] for a in legal_actions])[0]
+                bond.step(action, False)
             for event in pygame.event.get():
 
 
@@ -178,7 +204,7 @@ def main():
         pygame.display.flip()
 
 if __name__ == "__main__":
-    #main()    #
+    main()    #
     bond = Bond()
     while not bond.is_game_over():
         if bond.get_turn() == 1:
