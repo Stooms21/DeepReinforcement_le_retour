@@ -14,7 +14,7 @@ import torch
 import numpy as np
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
-from src.algorithmes.EXIT import load_model,PolicyNetwork
+from src.algorithmes.EXIT import load_model,PolicyNetwork,chose_action
 def main():
     env = Bond()
     #policy_network = deep_q_learning(env)
@@ -37,18 +37,7 @@ def main():
     # Charger un modèle sauvegardé
     model_path = "../../../src/algorithmes/policy_network.pth"
     load_model(policy_network, model_path)
-    bond = Bond()
 
-    #bond2 = Bond()
-    #marche bien :D
-    # bond2.step(0)
-    # bond2.step(5)
-    # bond2.step(1)
-    # print(bond2.available_actions())
-    # bond2.step(57)
-    # bond2.step(17)
-    # state = torch.tensor(bond2.one_hot_state_desc().flatten(), dtype=torch.float32).unsqueeze(0)
-    # bond.create_game_by_state(state)
     game_ui = GameUI(window, bond)
 
     x = 0
@@ -61,7 +50,9 @@ def main():
     selected_x, selected_y = 0,0
     solo = True
     menu = True
-    simulate = False
+    algorithm_menu = False
+    selected_algorithm = None  # Variable pour stocker l'algorithme sélectionné
+
     while running:
         if menu:
             button_1player, button_2player ,bt_simulate= game_ui.draw_buttons()
@@ -78,20 +69,41 @@ def main():
                         # Ajouter ici ce que vous voulez faire en mode 1 joueur
                         menu = False
                         solo = True
-                        simulate = False
+                        algorithm_menu = True  # Activer le menu pour choisir l'algorithme
+
                     elif button_2player.collidepoint(event.pos):
                         print("2 Joueurs sélectionné")
                         # Ajouter ici ce que vous voulez faire en mode 2 joueurs
                         menu = False
                         solo = False
-                        simulate = False
                     elif bt3.collidepoint(event.pos):
                         menu = True
                         solo = False
-                        simulate = False
-                    elif bt_simulate.collidepoint(event.pos):
-                        menu = False
-                        simulate = True
+
+        elif algorithm_menu:
+            game_ui.clear()
+            # Afficher les boutons pour choisir l'algorithme
+            button_random, button_rollout, button_uct, button_exit = game_ui.draw_algorithm_buttons()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if button_random.collidepoint(event.pos):
+                        selected_algorithm = "random"
+                        algorithm_menu = False  # Quitter le menu de sélection
+                    elif button_rollout.collidepoint(event.pos):
+                        selected_algorithm = "rollout"
+                        algorithm_menu = False
+                    elif button_uct.collidepoint(event.pos):
+                        selected_algorithm = "uct"
+                        algorithm_menu = False
+                    elif button_exit.collidepoint(event.pos):
+                        selected_algorithm = "exit"
+                        algorithm_menu = False
+
         else:
             game_ui.afficher_plateau()
             bt3 = game_ui.draw_button_menu()
@@ -102,44 +114,22 @@ def main():
             if highlighted_intersection:
                 selected_x ,  selected_y = highlighted_intersection[2],highlighted_intersection[3]
             state_move = bond.get_move_state()
-            if simulate:
-                trye = 1
-                while(not bond.is_game_over()):
-                    end = False
+
+            if solo and bond.get_turn() == 1:
+
+                if selected_algorithm == "random":
                     aa = bond.available_actions_ids()
                     action = random.choice(aa)
                     bond.step(action)
-                    if bond.is_game_over():
-                        if bond.score() > 0:
-                            end = True
-                    if not end and bond.is_game_over():
-                        print(trye)
-                        trye+=1
-                        bond.reset()
-            elif solo and bond.get_turn() == 1:
-                #s = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32)
-                #q_values = policy_network(s).detach().numpy()
-                #a = np.argmax(q_values)
-                #bond.step(a)
-
-                #random
-                #aa = bond.available_actions_ids()
-                #action = random.choice(aa)
-                #bond.step(action)
-
-                #utc
-                # a = uct(bond,5,3,-1)
-                # bond.step(a,False)
-
-                #EXIT
-                # Le réseau choisit une action
-                state = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32).unsqueeze(0)
-                legal_actions = bond.available_actions()
-
-                with torch.no_grad():
-                    action_probs = policy_network(state).numpy().flatten()
-                action = random.choices(legal_actions, weights=[action_probs[a] for a in legal_actions])[0]
-                bond.step(action, False)
+                elif selected_algorithm == "rollout":
+                    a = random_rollout(bond, 6, -1)
+                    bond.step(a, False)
+                elif selected_algorithm == "uct":
+                    a = uct(bond, 10, 5, -1)
+                    bond.step(a, False)
+                elif selected_algorithm == "exit":
+                    action = chose_action(policy_network, bond)
+                    bond.step(action)
             for event in pygame.event.get():
 
 
@@ -205,14 +195,3 @@ def main():
 
 if __name__ == "__main__":
     main()    #
-    bond = Bond()
-    while not bond.is_game_over():
-        if bond.get_turn() == 1:
-            a = uct(bond,10,math.sqrt(2),-1)
-            bond.step(a)
-        else:
-            aa = bond.available_actions_ids()
-            action = random.choice(aa)
-            bond.step(action)
-    print(bond.score())
-    print(bond.get_winners())

@@ -1,16 +1,15 @@
 import random
 import math as m
 import time
+import tqdm
 
-from tqdm import tqdm  # Pour afficher une barre de progression
 
-
-def uct(env, duration, c, color=1):
+def uct(env, duration, c, color=1,nb_action_play = 2):
     tree = {}
     root = env.state_id()  # Identifier l'état racine
     tree = update_tree(env, tree, root)
     start_time = time.time()
-    while duration > time.time() - start_time:
+    while duration > time.time() - start_time :
         # Copie initiale de l'environnement
         env_copy = env.copy()
 
@@ -28,6 +27,7 @@ def uct(env, duration, c, color=1):
         backpropagation(tree, visited_states, actions_played, score_final)
 
     # Sélection de la meilleure action depuis la racine
+    # print("Visits at root:", {action: node[1] for action, node in tree[root].items()})
     best_action = select_best_action(tree[root])
     return best_action
 
@@ -39,14 +39,19 @@ def selection(env, tree, root, c):
     state_id = root
     actions_played = []
     visited_states = [state_id]
-
+    nb_visited = 0
     while state_id in tree and not env.is_game_over():
         current_node = tree[state_id]
-        action_select = select_action(current_node, c)
+        action_select,nb_visited = select_action(current_node, c)
+        if nb_visited == 0:
+            actions_played.append(action_select)
+            visited_states.append(state_id)
+            return state_id, actions_played, visited_states
         env.step(action_select)
         state_id = env.state_id()
 
         actions_played.append(action_select)
+
         visited_states.append(state_id)
 
     return state_id, actions_played, visited_states
@@ -63,7 +68,7 @@ def select_action(node, c):
     for action, (score, nb_visited) in node.items():
         if nb_visited == 0:
             # Priorité aux actions non visitées
-            return action
+            return action,nb_visited
         # Calcul du score UCB
         exploitation = score / nb_visited
         exploration = c * m.sqrt(m.log(nb_visited_total) / nb_visited)
@@ -73,7 +78,7 @@ def select_action(node, c):
             best_ucb = ucb
             action_select = action
 
-    return action_select
+    return action_select,1
 
 
 def update_tree(env, tree, state_id):

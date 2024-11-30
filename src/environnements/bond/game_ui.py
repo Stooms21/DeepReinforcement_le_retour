@@ -172,3 +172,21 @@ class GameUI:
     def clear(self):
         self.window.fill(self.background_color)
 
+    def draw_algorithm_buttons(self):
+        button_random = pygame.Rect(100, 100, 200, 50)
+        button_rollout = pygame.Rect(100, 200, 200, 50)
+        button_uct = pygame.Rect(100, 300, 200, 50)
+        button_exit = pygame.Rect(100, 400, 200, 50)
+
+        pygame.draw.rect(self.window, (255, 0, 0), button_random)
+        pygame.draw.rect(self.window, (0, 255, 0), button_rollout)
+        pygame.draw.rect(self.window, (0, 0, 255), button_uct)
+        pygame.draw.rect(self.window, (255, 155, 125), button_exit)
+
+        font = pygame.font.Font(None, 36)
+        self.window.blit(font.render("Random", True, (255, 255, 255)), (120, 115))
+        self.window.blit(font.render("Rollout", True, (255, 255, 255)), (120, 215))
+        self.window.blit(font.render("UCT", True, (255, 255, 255)), (120, 315))
+        self.window.blit(font.render("EXIT", True, (255, 255, 255)), (120, 415))
+
+        return button_random, button_rollout, button_uct, button_exit
