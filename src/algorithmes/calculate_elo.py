@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
 
+from src.algorithmes.reinforce import reinforce
 from src.environnements.bond.Bond import Bond
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
@@ -75,7 +76,7 @@ def play_by_algo(bond,curr_algo,color):
         return action
     elif curr_algo == "UCT":
         return uct(bond, 10, 1, color,2500)
-    elif curr_algo == "reinforce":
+    elif curr_algo == "reinforce" or curr_algo == "reinforce_baseline":
         state = bond.one_hot_state_desc()
         action_probs = policy_network.call(state)
         possible_actions = bond.available_actions()
@@ -189,7 +190,7 @@ def plot_elo_history(history):
     plt.show()
 
 # Exemple d'algorithmes
-algorithms = ["UCT,"",EXIT","Random","Random Rollout"]
+algorithms = ["UCT,"",EXIT","Random","Random Rollout", "reinforce_baseline"]
 
 # Simulation
 final_scores, elo_history, results_matrix, draws_matrix = simulate_tournament(algorithms, num_matches=100, k=32)
