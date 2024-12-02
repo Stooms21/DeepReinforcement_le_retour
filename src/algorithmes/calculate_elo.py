@@ -9,14 +9,19 @@ from src.environnements.bond.Bond import Bond
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
 import torch
-from src.algorithmes.EXIT import load_model,PolicyNetwork
+from src.algorithmes.EXIT import load_model, PolicyNetwork
 
 import tensorflow as tf
-from src.algorithmes.models import PolicyNetwork
+from src.algorithmes.models import PolicyNetworkReinforce
 policy_network = PolicyNetwork(input_size=21, num_actions=144)
 
 model_path = "policy_network.pth"
 load_model(policy_network, model_path)
+
+policy_network = tf.keras.models.load_model(
+    '../utils/policy_network_reinforce_10000.keras',
+    custom_objects={"PolicyNetworkReinforce": PolicyNetworkReinforce}
+)
 
 def simulate_game(algo_a, algo_b):
     bond = Bond()

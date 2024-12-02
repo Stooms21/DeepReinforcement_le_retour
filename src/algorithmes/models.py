@@ -56,7 +56,7 @@ class QNet(nn.Module):
         self.optimizer.step()
 
 
-class PolicyNetwork(tf.keras.Model):
+class PolicyNetworkReinforce(tf.keras.Model):
     def __init__(
             self,
             state_dim,
@@ -72,7 +72,7 @@ class PolicyNetwork(tf.keras.Model):
         :param state_dim: Dimension de l'état (taille du vecteur d'entrée)
         :param action_dim: Nombre d'actions (taille de la sortie)
         """
-        super(PolicyNetwork, self).__init__()
+        super(PolicyNetworkReinforce, self).__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.nb_hidden_layers = nb_hidden_layers

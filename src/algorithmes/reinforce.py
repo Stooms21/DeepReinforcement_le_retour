@@ -1,7 +1,7 @@
 from config.algos_config import CONFIG_FILE, ENV_MODULE_MAPPING
 from src.utils.dqn_utils import observe_R_S_prime
 from src.utils.utils import load_config
-from src.algorithmes.models import PolicyNetwork
+from src.algorithmes.models import PolicyNetworkReinforce
 import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
