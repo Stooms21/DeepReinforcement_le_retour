@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # Passe avant pour construire le modèle
     policy_network(dummy_input)
     # save model
-    policy_network.save('/home/leonard/Documents/PythonProjects/DeepReinforcement2/src/utils/policy_network_10000.keras')
+    policy_network.save('../utils/policy_network_10000.keras')
 
     # load model
     #policy_network = PolicyNetwork.load('/home/leonard/Documents/PythonProjects/DeepReinforcement2/src/utils/policy_network.keras')
