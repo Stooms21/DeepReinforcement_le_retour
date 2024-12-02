@@ -10,6 +10,9 @@ from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
 import torch
 from src.algorithmes.EXIT import load_model,PolicyNetwork
+
+import tensorflow as tf
+from src.algorithmes.models import PolicyNetwork
 policy_network = PolicyNetwork(input_size=21, num_actions=144)
 
 model_path = "policy_network.pth"
@@ -67,6 +70,24 @@ def play_by_algo(bond,curr_algo,color):
         return action
     elif curr_algo == "UCT":
         return uct(bond, 10, 1, color,2500)
+    elif curr_algo == "reinforce":
+        state = bond.one_hot_state_desc()
+        action_probs = policy_network.call(state)
+        possible_actions = bond.available_actions()
+        mask = np.zeros_like(action_probs)
+        mask[possible_actions] = 1
+        masked_probs = action_probs * mask
+        # Normaliser les probabilités (nécessaire pour une sélection valide)
+        if masked_probs.sum() == 0:
+            action = np.random.choice(possible_actions)
+            print("random")
+        else:
+            masked_probs /= masked_probs.sum()
+
+            # Sélectionner une action en fonction des probabilités masquées
+            action = np.random.choice(len(masked_probs), p=masked_probs)
+        bond.step(action)
+
     return 0
 
 # Fonction pour calculer les probabilités d'Elo
