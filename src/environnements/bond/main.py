@@ -115,7 +115,7 @@ def main():
                 selected_x ,  selected_y = highlighted_intersection[2],highlighted_intersection[3]
             state_move = bond.get_move_state()
 
-            if solo and bond.get_turn() == 1:
+            if solo and bond.get_turn() == 0:
 
                 if selected_algorithm == "random":
                     aa = bond.available_actions_ids()
@@ -125,7 +125,7 @@ def main():
                     a = random_rollout(bond, 6, -1)
                     bond.step(a, False)
                 elif selected_algorithm == "uct":
-                    a = uct(bond, 10, 5, -1)
+                    a = uct(bond, 10, 1, 1)
                     bond.step(a, False)
                 elif selected_algorithm == "exit":
                     action = chose_action(policy_network, bond)

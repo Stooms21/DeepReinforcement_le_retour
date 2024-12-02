@@ -308,7 +308,7 @@ def chose_action(train_policy_network,env):
         masked_probs /= masked_probs.sum()
 
     # Sélectionner une action en fonction des probabilités masquées
-    action = np.random.choice(len(masked_probs), p=masked_probs)
+    action = np.argmax(masked_probs)
     return action
 if __name__ == "__main__":
     # Initialisation

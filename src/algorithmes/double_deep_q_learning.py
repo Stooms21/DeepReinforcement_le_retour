@@ -3,7 +3,9 @@ import src.utils.dqn_utils as dqu
 import tqdm
 import models
 from config.algos_config import CONFIG_FILE, DDQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
-
+import torch
+from src.environnements.bond.Bond import Bond
+import numpy as np
 
 def deep_q_learning(
         env,
@@ -13,7 +15,7 @@ def deep_q_learning(
         epsilon_decay: float = 0.995,
         gamma: float = 0.999,
         nb_episode: int = 1000,
-        nb_target_update: int = 10
+        nb_target_update: int = 1
 ):
     """
     Fonction d'apprentissage par Q-learning profond avec double réseau de neurones. 
@@ -39,7 +41,7 @@ def deep_q_learning(
 
         # Boucle pour chaque étape de l'épisode
         while not env.is_game_over():
-            s = env.one_hot_state_desc()
+            s = torch.tensor(env.one_hot_state_desc().flatten(), dtype=torch.float32).unsqueeze(0)
             available_actions = env.available_actions()
 
             # Choisir A à partir de S en utilisant la politique dérivée de Q
@@ -57,7 +59,50 @@ def deep_q_learning(
         # Décroissance de epsilon
         epsilon = max(epsilon_min, epsilon * epsilon_decay)
 
+    save_path =  "double_deep_q_learning.pth"
+    # Sauvegarde du réseau entraîné
+    torch.save(policy_network.state_dict(), save_path)
+    print(f"Modèle sauvegardé à {save_path}")
+
     return policy_network
+
+def load_double_deep(model_path: str):
+    """
+    Charger un réseau de neurones sauvegardé et jouer une partie.
+    """
+    input_layer_size =21
+    output_layer_size = 144
+    loaded_model = models.QNet(input_layer_size, output_layer_size, DDQN_HIDDEN_LAYER_SIZE)
+
+    # Charger les poids sauvegardés
+    state_dict = torch.load(model_path, weights_only=True)
+    loaded_model.load_state_dict(state_dict)
+    return loaded_model
+
+def double_deep_chose_action(train_policy_network,env_bond):
+    state = torch.tensor(env_bond.one_hot_state_desc().flatten(), dtype=torch.float32).unsqueeze(0)
+    # Utiliser l'apprenti pour choisir une action
+    with torch.no_grad():
+        action_probs = train_policy_network(state).numpy().flatten()
+    # Obtenir la liste des actions possibles
+    possible_actions = env_bond.available_actions()  # Exemple: [1, 5, 10, ...]
+
+    # Créer un masque pour les actions impossibles
+    mask = np.zeros_like(action_probs)
+    mask[possible_actions] = 1  # Mettre 1 pour les indices correspondants aux actions possibles
+
+    # Appliquer le masque : les probabilités des actions impossibles deviennent 0
+    masked_probs = action_probs * mask
+
+    # Normaliser les probabilités (nécessaire pour une sélection valide)
+    if masked_probs.sum() == 0:
+        action = np.random.choice(possible_actions)
+    else:
+        masked_probs /= masked_probs.sum()
+
+    # Sélectionner une action en fonction des probabilités masquées
+    action = np.argmax(masked_probs)
+    return action
 
 if __name__ == "__main__":
     # Nom de l'environnement
@@ -70,14 +115,10 @@ if __name__ == "__main__":
     env_class = getattr(env_module, env_name)
     # Initialiser l'environnement avec la configuration
     env = env_class(config)
+    env = Bond()
     reward = 0
     # Boucle pour jouer 10 parties
-    for i in range(1, 11):
-        # Réinitialiser l'environnement
-        env.reset()
-        # Appliquer l'apprentissage par Q-learning profond
-        policy_network = deep_q_learning(env)
-        # Jouer une partie avec le réseau de politique appris
-        reward += env.play(policy_network)
-        # Afficher la récompense moyenne sur les parties jouées
-        print(f"Reward moyen: {reward / i} sur {i} parties")
+    # Réinitialiser l'environnement
+    env.reset()
+    # Appliquer l'apprentissage par Q-learning profond
+    policy_network = deep_q_learning(env)

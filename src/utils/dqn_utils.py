@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 def choose_epsilon_greedy_action(
@@ -10,7 +11,11 @@ def choose_epsilon_greedy_action(
         a = np.random.choice(available_actions)
     else:
         q_values = policy_network(s).detach().numpy()
-        a = available_actions[np.argmax(q_values)]
+        a = np.argmax(q_values)
+        if a in available_actions:
+            return a
+        else:
+            a = np.random.choice(available_actions)
     return a
 
 
@@ -35,7 +40,7 @@ def compute_q_values_and_q_target(
 
     # Calcul de la prédiction actuelle Q(s, a)
     q_values_current = policy_network.forward(s)
-    q_value = q_values_current[a]
+    q_value = q_values_current[0, a]
 
     return q_value, q_target
 
@@ -45,6 +50,6 @@ def observe_R_S_prime(env, a):
     env.step(a)
     new_score = env.score()
     reward = new_score - prev_score
-    s_prime = env.one_hot_state_desc()
+    s_prime = torch.tensor(env.one_hot_state_desc().flatten(), dtype=torch.float32).unsqueeze(0)
     available_actions_prime = env.available_actions()
     return reward, s_prime, available_actions_prime

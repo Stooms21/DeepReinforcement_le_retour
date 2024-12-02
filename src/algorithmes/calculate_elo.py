@@ -8,11 +8,14 @@ import tqdm
 from src.environnements.bond.Bond import Bond
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
-import torch
-from src.algorithmes.EXIT import load_model,PolicyNetwork
+from src.algorithmes.EXIT import load_model, PolicyNetwork, chose_action
+from src.algorithmes.double_deep_q_learning import load_double_deep, double_deep_chose_action
+
+model = load_double_deep("double_deep_q_learning.pth")
 policy_network = PolicyNetwork(input_size=21, num_actions=144)
 
 model_path = "policy_network.pth"
+
 load_model(policy_network, model_path)
 
 def simulate_game(algo_a, algo_b):
@@ -35,38 +38,12 @@ def play_by_algo(bond,curr_algo,color):
         return random_rollout(bond, 6, color)
     elif curr_algo == "EXIT":
         # Le réseau choisit une action
-        state = torch.tensor(bond.one_hot_state_desc(), dtype=torch.float32).unsqueeze(0)
-        legal_actions = bond.available_actions()
-
-        with torch.no_grad():
-            action_probs = policy_network(state).numpy().flatten()
-        # Obtenir la liste des actions possibles
-        possible_actions = bond.available_actions()  # Exemple: [1, 5, 10, ...]
-
-        # Créer un masque pour les actions impossibles
-        mask = np.zeros_like(action_probs)
-        mask[possible_actions] = 1  # Mettre 1 pour les indices correspondants aux actions possibles
-
-        # Appliquer le masque : les probabilités des actions impossibles deviennent 0
-        masked_probs = action_probs * mask
-
-        # Normaliser les probabilités (nécessaire pour une sélection valide)
-        if masked_probs.sum() == 0:
-            action = np.random.choice(possible_actions)
-            print("random")
-        else:
-            masked_probs /= masked_probs.sum()
-
-            # Sélectionner une action en fonction des probabilités masquées
-            action = np.random.choice(len(masked_probs), p=masked_probs)
-
-            state = torch.tensor(bond.one_hot_state_desc())
-            state = state.unsqueeze(0)
-            action_probabilities = policy_network(state.float())  # Action probabilities de taille (1, 144)
-            estimated_proba = action_probabilities[0, action]
+        action = chose_action(policy_network,bond)
         return action
     elif curr_algo == "UCT":
-        return uct(bond, 10, 1, color,2500)
+        return uct(bond, 20, 1,color)
+    elif curr_algo == "Double Deep":
+        return double_deep_chose_action(model,bond)
     return 0
 
 # Fonction pour calculer les probabilités d'Elo
@@ -163,10 +140,10 @@ def plot_elo_history(history):
     plt.show()
 
 # Exemple d'algorithmes
-algorithms = ["UCT,"",EXIT","Random","Random Rollout"]
+algorithms = ["Double Deep","Random"]
 
 # Simulation
-final_scores, elo_history, results_matrix, draws_matrix = simulate_tournament(algorithms, num_matches=100, k=32)
+final_scores, elo_history, results_matrix, draws_matrix = simulate_tournament(algorithms, num_matches=1000, k=32)
 
 # Résultats finaux
 print("Scores Elo finaux:")

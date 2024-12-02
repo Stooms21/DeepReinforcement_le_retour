@@ -317,6 +317,8 @@ class Bond:
             return 1
         elif 1 in self.winners:
             return -1
+        else:
+            return 0
 
     def get_curr_player(self):
         return self.players[self.get_turn()]

@@ -4,7 +4,7 @@ import time
 import tqdm
 
 
-def uct(env, duration, c, color=1,nb_action_play = 2):
+def uct(env, duration, c, color=1):
     tree = {}
     root = env.state_id()  # Identifier l'état racine
     tree = update_tree(env, tree, root)
