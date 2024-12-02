@@ -19,7 +19,7 @@ model_path = "policy_network.pth"
 load_model(policy_network, model_path)
 
 policy_network = tf.keras.models.load_model(
-    '../utils/policy_network_reinforce_10000.keras',
+    '../utils/policy_network_reinforce_1000.keras',
     custom_objects={"PolicyNetworkReinforce": PolicyNetworkReinforce}
 )
 
