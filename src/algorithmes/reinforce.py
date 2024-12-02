@@ -22,7 +22,7 @@ def reinforce(
     # Initialisation du policy network de manière arbitraire
     input_layer_size = env.get_one_hot_size()
     output_layer_size = env.num_actions()
-    policy_network = PolicyNetwork(input_layer_size, output_layer_size, alpha=alpha)
+    policy_network = PolicyNetworkReinforce(input_layer_size, output_layer_size, alpha=alpha)
     for _ in tqdm(range(nb_episode)):
         env.reset()  # Réinitialiser l'environnement
         states, actions, rewards = [], [], []
