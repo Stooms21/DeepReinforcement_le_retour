@@ -5,6 +5,7 @@ import src.algorithmes.models as models
 from config.algos_config import CONFIG_FILE, DQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 import src.environnements.bond.Bond as b
 
+
 def deep_q_learning(
         env,
         alpha: float = 0.0001,
