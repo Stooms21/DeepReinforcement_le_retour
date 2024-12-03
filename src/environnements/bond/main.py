@@ -15,6 +15,9 @@ import numpy as np
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
 from src.algorithmes.EXIT import load_model,PolicyNetwork,chose_action
+from src.algorithmes.deep_q_learning import load_deep_q,deep_chose_action
+from src.algorithmes.double_deep_q_learning import load_double_deep, double_deep_chose_action
+
 def main():
     env = Bond()
     #policy_network = deep_q_learning(env)
@@ -37,6 +40,8 @@ def main():
     # Charger un modèle sauvegardé
     model_path = "../../../src/algorithmes/policy_network.pth"
     load_model(policy_network, model_path)
+    model_deep_q = load_deep_q("../../../src/algorithmes/deep_q_learning.pth")
+    model_double_q_learning = load_double_deep("../../../src/algorithmes/double_deep_q_learning.pth")
 
     game_ui = GameUI(window, bond)
 
@@ -55,7 +60,7 @@ def main():
 
     while running:
         if menu:
-            button_1player, button_2player ,bt_simulate= game_ui.draw_buttons()
+            button_1player, button_2player = game_ui.draw_buttons()
             bt3 = game_ui.draw_button_menu()
 
             for event in pygame.event.get():
@@ -83,7 +88,7 @@ def main():
         elif algorithm_menu:
             game_ui.clear()
             # Afficher les boutons pour choisir l'algorithme
-            button_random, button_rollout, button_uct, button_exit = game_ui.draw_algorithm_buttons()
+            button_random, button_rollout, button_uct, button_exit , button_deep_q , button_double_deep_q = game_ui.draw_algorithm_buttons()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -102,6 +107,12 @@ def main():
                         algorithm_menu = False
                     elif button_exit.collidepoint(event.pos):
                         selected_algorithm = "exit"
+                        algorithm_menu = False
+                    elif button_deep_q.collidepoint(event.pos):
+                        selected_algorithm = "deep_q_learning"
+                        algorithm_menu = False
+                    elif button_double_deep_q.collidepoint(event.pos):
+                        selected_algorithm = "double_q_learning"
                         algorithm_menu = False
 
         else:
@@ -122,7 +133,7 @@ def main():
                     action = random.choice(aa)
                     bond.step(action)
                 elif selected_algorithm == "rollout":
-                    a = random_rollout(bond, 6, -1)
+                    a = random_rollout(bond, 6, 1)
                     bond.step(a, False)
                 elif selected_algorithm == "uct":
                     a = uct(bond, 10, 1, 1)
@@ -130,6 +141,13 @@ def main():
                 elif selected_algorithm == "exit":
                     action = chose_action(policy_network, bond)
                     bond.step(action)
+                elif selected_algorithm == "deep_q_learning":
+                    action = deep_chose_action(model_deep_q, bond)
+                    bond.step(action)
+                elif selected_algorithm == "double_q_learning":
+                    action = double_deep_chose_action(model_double_q_learning, bond)
+                    bond.step(action)
+
             for event in pygame.event.get():
 
 

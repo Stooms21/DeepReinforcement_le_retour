@@ -1,7 +1,7 @@
 from src.utils import utils as ut
 import src.utils.dqn_utils as dqu
 import tqdm
-import models
+import src.algorithmes.models as models
 from config.algos_config import CONFIG_FILE, DDQN_HIDDEN_LAYER_SIZE, ENV_MODULE_MAPPING
 import torch
 from src.environnements.bond.Bond import Bond
@@ -14,11 +14,11 @@ def deep_q_learning(
         epsilon_min: float = 0.01,
         epsilon_decay: float = 0.995,
         gamma: float = 0.999,
-        nb_episode: int = 1000,
+        nb_episode: int = 100,
         nb_target_update: int = 1
 ):
     """
-    Fonction d'apprentissage par Q-learning profond avec double réseau de neurones. 
+    Fonction d'apprentissage par Q-learning profond avec double réseau de neurones.
     Elle retourne le réseau de neurone de politique entrainé.
     """
 
@@ -50,8 +50,10 @@ def deep_q_learning(
             # Prendre l'action A, observer R, S'
             reward, s_prime, available_actions_prime = dqu.observe_R_S_prime(env, a)
 
+            available_actions_prime = env.available_actions()
+
             # Calculer Q(s,a) et Q_target
-            q_value, q_target = dqu.compute_q_values_and_q_target(env, policy_network, s, s_prime, a, gamma, reward, target_network)
+            q_value, q_target = dqu.compute_q_values_and_q_target(env, policy_network, s, s_prime, a, gamma, reward, target_network,available_actions_prime=available_actions_prime)
 
             # Mettre à jour Q(s,a)
             policy_network.backward(q_value, q_target)

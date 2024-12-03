@@ -15,7 +15,7 @@ def deep_q_learning(
         epsilon_min: float = 0.01,
         epsilon_decay: float = 0.995,
         gamma: float = 0.999,
-        nb_episode: int = 100,
+        nb_episode: int = 1000,
 ):
     """
     Fonction d'apprentissage par Q-learning profond. Elle retourne le réseau de neurone entrainé.
@@ -42,8 +42,10 @@ def deep_q_learning(
             # Prendre l'action A, observer R, S'
             reward, s_prime, available_actions_prime = dqu.observe_R_S_prime(env, a)
 
+            available_actions_prime = env.available_actions()
+
             # Calculer Q(s,a) et Q_target
-            q_value, q_target = dqu.compute_q_values_and_q_target(env, policy_network, s, s_prime, a, gamma, reward)
+            q_value, q_target = dqu.compute_q_values_and_q_target(env, policy_network, s, s_prime, a, gamma, reward, available_actions_prime=available_actions_prime)
 
             # Mettre à jour Q(s,a)
             policy_network.backward(q_value, q_target)
@@ -57,6 +59,7 @@ def deep_q_learning(
     print(f"Modèle sauvegardé à {save_path}")
     return policy_network
 
+
 def load_deep_q(model_path: str):
     """
     Charger un réseau de neurones sauvegardé et jouer une partie.
@@ -66,7 +69,7 @@ def load_deep_q(model_path: str):
     loaded_model = models.QNet(input_layer_size, output_layer_size, DQN_HIDDEN_LAYER_SIZE)
 
     # Charger les poids sauvegardés
-    state_dict = torch.load(model_path, weights_only=True)
+    state_dict = torch.load(model_path,weights_only=True)
     loaded_model.load_state_dict(state_dict)
     return loaded_model
 

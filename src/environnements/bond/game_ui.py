@@ -123,7 +123,6 @@ class GameUI:
         # Créer les boutons
         button_1player = pygame.Rect(220, 150, 200, 50)
         button_2player = pygame.Rect(220, 250, 200, 50)
-        button_simulate = pygame.Rect(220, 350, 200, 50)
         # Définir les textes des boutons
         text_1player = font.render('1 Joueur', True, WHITE)
         text_2player = font.render('2 Joueurs', True, WHITE)
@@ -131,12 +130,10 @@ class GameUI:
         text_simulate = font.render('Simuler une partie', True, WHITE)
         pygame.draw.rect(self.window, BLUE, button_1player)
         pygame.draw.rect(self.window, GREEN, button_2player)
-        pygame.draw.rect(self.window, GREEN, button_simulate)
         self.window.blit(text_1player, (button_1player.x + 35, button_1player.y + 5))
         self.window.blit(text_2player, (button_2player.x + 25, button_2player.y + 5))
-        self.window.blit(text_simulate, (button_simulate.x + 25, button_simulate.y + 5))
 
-        return button_1player, button_2player, button_simulate
+        return button_1player, button_2player
 
     def draw_button_menu(self):
         WHITE = (255, 255, 255)
@@ -176,17 +173,23 @@ class GameUI:
         button_random = pygame.Rect(100, 100, 200, 50)
         button_rollout = pygame.Rect(100, 200, 200, 50)
         button_uct = pygame.Rect(100, 300, 200, 50)
-        button_exit = pygame.Rect(100, 400, 200, 50)
+        button_deep_q = pygame.Rect(100, 400, 200, 50)
+        button_double_deep_q = pygame.Rect(100, 500, 200, 50)
+        button_exit = pygame.Rect(100, 600, 200, 50)
 
         pygame.draw.rect(self.window, (255, 0, 0), button_random)
         pygame.draw.rect(self.window, (0, 255, 0), button_rollout)
         pygame.draw.rect(self.window, (0, 0, 255), button_uct)
         pygame.draw.rect(self.window, (255, 155, 125), button_exit)
+        pygame.draw.rect(self.window, (126, 155, 125), button_deep_q)
+        pygame.draw.rect(self.window, (126, 255, 25), button_double_deep_q)
 
         font = pygame.font.Font(None, 36)
         self.window.blit(font.render("Random", True, (255, 255, 255)), (120, 115))
         self.window.blit(font.render("Rollout", True, (255, 255, 255)), (120, 215))
         self.window.blit(font.render("UCT", True, (255, 255, 255)), (120, 315))
-        self.window.blit(font.render("EXIT", True, (255, 255, 255)), (120, 415))
+        self.window.blit(font.render("Deep Q", True, (255, 255, 255)), (120, 415))
+        self.window.blit(font.render("Deep Double", True, (255, 255, 255)), (120, 515))
+        self.window.blit(font.render("EXIT", True, (255, 255, 255)), (120, 615))
 
-        return button_random, button_rollout, button_uct, button_exit
+        return button_random, button_rollout, button_uct, button_exit , button_deep_q , button_double_deep_q
