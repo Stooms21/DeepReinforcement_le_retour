@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm  # Pour afficher une barre de progression
-# from src.environnements.bond.Bond import Bond
+from src.environnements.bond.Bond import Bond
 
 def MCTS(env, state, policy_apprentice, nb_action, c):
     env.reset()
@@ -212,7 +212,7 @@ def train_policy_network(policy_network, optimizer, dataset, num_epochs=100, bat
             optimizer.step()
 
 # Expert Iteration (EXIT)
-def expert_iteration(env, policy_network, num_iterations=10, games_per_iteration=25):
+def expert_iteration(env, policy_network, num_iterations=10, games_per_iteration=25,nb_mcts=1000):
     optimizer = optim.Adam(policy_network.parameters(), lr=0.001)
 
     for iteration in tqdm(range(num_iterations)):
@@ -262,12 +262,15 @@ def expert_iteration(env, policy_network, num_iterations=10, games_per_iteration
                     dataset.append((state, policy))
                 pbar.update(1)
         # Étape 2 : Planification avec MCTS (amélioration de l'expert)
-        for i, (state, _) in enumerate(dataset):
-            mcts_policy = MCTS(env,state, policy_network,1000,1)  # Appel à l'expert
-            dataset[i] = (state, mcts_policy)  # Mise à jour avec la politique améliorée
+        with tqdm(total=len(dataset), desc="MCTS", unit="step") as pbar_mcts:
+            for i, (state, _) in enumerate(dataset):
+                mcts_policy = MCTS(env,state, policy_network,nb_mcts,1)  # Appel à l'expert
+                dataset[i] = (state, mcts_policy)  # Mise à jour avec la politique améliorée
+                pbar_mcts.update(1)
+
         # Étape 3 : Apprentissage supervisé (imitation de l'expert)
         train_policy_network(policy_network, optimizer, dataset)
-    save_model(policy_network, "policy_network.pth")
+    # save_model(policy_network, "policy_network.pth")
 
 def save_model(model, filepath):
     """
@@ -312,9 +315,8 @@ def chose_action(train_policy_network,env):
     return action
 if __name__ == "__main__":
     # Initialisation
-    print("training")
-    # bond = Bond()
-    # policy_network = PolicyNetwork(input_size=21, num_actions=144)  # Plateau 3x3 => 9 cases/actions
-    # # #
-    # # # Lancer l'algorithme EXIT
-    # expert_iteration(bond, policy_network, num_iterations=10, games_per_iteration=10)
+    bond = Bond()
+    policy_network = PolicyNetwork(input_size=21, num_actions=144)  # Plateau 3x3 => 9 cases/actions
+    # #
+    # # Lancer l'algorithme EXIT
+    expert_iteration(bond, policy_network, num_iterations=10, games_per_iteration=10,nb_mcts=1000)

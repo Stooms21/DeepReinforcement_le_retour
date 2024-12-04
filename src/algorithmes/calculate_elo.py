@@ -5,32 +5,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
 
-from src.algorithmes.reinforce import reinforce
 from src.environnements.bond.Bond import Bond
 from src.algorithmes.uct import uct
 from src.algorithmes.random_rollout import random_rollout
 from src.algorithmes.EXIT import load_model, PolicyNetwork, chose_action
 from src.algorithmes.double_deep_q_learning import load_double_deep, double_deep_chose_action
+from src.algorithmes.deep_q_learning import load_deep_q,deep_chose_action
+
+
 
 model = load_double_deep("double_deep_q_learning.pth")
-import torch
-from src.algorithmes.EXIT import load_model, PolicyNetwork
 
-import tensorflow as tf
-from src.algorithmes.models import PolicyNetworkReinforce
+model_deep_q = load_deep_q("deep_q_learning.pth")
+
 policy_network = PolicyNetwork(input_size=21, num_actions=144)
 
 model_path = "policy_network.pth"
 
 load_model(policy_network, model_path)
 
-policy_network = tf.keras.models.load_model(
-    '../utils/policy_network_reinforce_1000.keras',
-    custom_objects={"PolicyNetworkReinforce": PolicyNetworkReinforce}
-)
 
 def simulate_game(algo_a, algo_b):
     bond = Bond()
+    nb_step = 0
     while not bond.is_game_over():
         action = 0
         if bond.get_turn() == 0:
@@ -38,7 +35,8 @@ def simulate_game(algo_a, algo_b):
         else:
             action = play_by_algo(bond, algo_b, -1)
         bond.step(action)
-    return bond.score()
+        nb_step += 1
+    return bond.score(),nb_step
 
 
 def play_by_algo(bond,curr_algo,color):
@@ -46,33 +44,16 @@ def play_by_algo(bond,curr_algo,color):
         aa = bond.available_actions_ids()
         return random.choice(aa)
     elif curr_algo == "Random Rollout":
-        return random_rollout(bond, 6, color)
+        return random_rollout(bond, 5, color)
     elif curr_algo == "EXIT":
-        # Le réseau choisit une action
         action = chose_action(policy_network,bond)
         return action
     elif curr_algo == "UCT":
-        return uct(bond, 20, 1,color)
+        return uct(bond, 10, 1,color)
     elif curr_algo == "Double Deep":
         return double_deep_chose_action(model,bond)
-    elif curr_algo == "reinforce" or curr_algo == "reinforce_baseline":
-        state = bond.one_hot_state_desc()
-        action_probs = policy_network.call(state)
-        possible_actions = bond.available_actions()
-        mask = np.zeros_like(action_probs)
-        mask[possible_actions] = 1
-        masked_probs = action_probs * mask
-        # Normaliser les probabilités (nécessaire pour une sélection valide)
-        if masked_probs.sum() == 0:
-            action = np.random.choice(possible_actions)
-            print("random")
-        else:
-            masked_probs /= masked_probs.sum()
-
-            # Sélectionner une action en fonction des probabilités masquées
-            action = np.random.choice(len(masked_probs), p=masked_probs)
-        bond.step(action)
-
+    elif curr_algo == "Deep Q":
+        return deep_chose_action(model_deep_q,bond)
     return 0
 
 # Fonction pour calculer les probabilités d'Elo
@@ -108,7 +89,7 @@ def simulate_tournament(algorithms, num_matches=1000, k=32):
     # Matrice des résultats (gains et matchs nuls entre algorithmes)
     results_matrix = np.zeros((num_algorithms, num_algorithms), dtype=int)
     draws_matrix = np.zeros((num_algorithms, num_algorithms), dtype=int)
-
+    mean_nb_step = 0
     for _ in range(num_matches):
         # Sélectionner deux algorithmes aléatoirement
         algo_a_idx, algo_b_idx = np.random.choice(range(num_algorithms), size=2, replace=False)
@@ -116,8 +97,8 @@ def simulate_tournament(algorithms, num_matches=1000, k=32):
         rating_a, rating_b = elo_scores[algo_a], elo_scores[algo_b]
 
         # Simuler un résultat (1 pour A gagne, -1 pour B gagne, 0 pour nul)
-        result_a = simulate_game(algo_a, algo_b)
-
+        result_a,nb_step = simulate_game(algo_a, algo_b)
+        mean_nb_step += nb_step
         # Mettre à jour les scores Elo
         new_rating_a, new_rating_b = update_elo(rating_a, rating_b, result_a, k)
         elo_scores[algo_a], elo_scores[algo_b] = new_rating_a, new_rating_b
@@ -134,7 +115,8 @@ def simulate_tournament(algorithms, num_matches=1000, k=32):
         # Ajouter à l'historique
         for algo in algorithms:
             history[algo].append(elo_scores[algo])
-
+    mean_nb_step/=num_matches
+    print("Moyenne des steps par match pour ", num_matches , " parties : ", mean_nb_step )
     return elo_scores, history, results_matrix, draws_matrix
 
 # Fonction pour afficher les matrices des résultats
@@ -169,11 +151,11 @@ def plot_elo_history(history):
     plt.show()
 
 # Exemple d'algorithmes
-algorithms = ["Double Deep","Random"]
-algorithms = ["UCT,"",EXIT","Random","Random Rollout", "reinforce_baseline"]
+algorithms = ["Random","Deep Q","Double Deep","UCT"]
+# algorithms = ["UCT,"",EXIT","Random","Random Rollout", "reinforce_baseline"]
 
 # Simulation
-final_scores, elo_history, results_matrix, draws_matrix = simulate_tournament(algorithms, num_matches=1000, k=32)
+final_scores, elo_history, results_matrix, draws_matrix = simulate_tournament(algorithms, num_matches=10, k=32)
 
 # Résultats finaux
 print("Scores Elo finaux:")

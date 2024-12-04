@@ -20,7 +20,6 @@ from src.algorithmes.double_deep_q_learning import load_double_deep, double_deep
 
 def main():
     env = Bond()
-    #policy_network = deep_q_learning(env)
 
     # Initialisation de Pygame
     pygame.init()
